@@ -56,3 +56,6 @@ upload_semaphore = threading.Semaphore(1)
 camera_last_frame_lock = threading.Lock()
 camera_active_lock = threading.Lock()
 camera_startup_semaphore = threading.Semaphore(config.MAX_CONCURRENT_STARTS)
+
+# ================== MQTT CLIENT ==================
+mqtt_service = None  # Inicializado em main.py

@@ -139,6 +139,10 @@ def processar_evento_worker():
 
                 print(f"   [OK] Ocorrência salva em {total_time:.2f}s ({camera_nome})", flush=True)
 
+                # Aciona alarme via MQTT após insert confirmado
+                if state.mqtt_service:
+                    state.mqtt_service.publish_trigger("1")
+
             except Exception as e:
                 print(f"   [FAIL] Erro processando evento {camera_nome}: {e}", flush=True)
 

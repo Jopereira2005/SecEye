@@ -328,6 +328,10 @@ def cleanup():
         except Exception:
             pass
 
+    if state.mqtt_service:
+        state.mqtt_service.disconnect()
+        print(">> [MQTT] Desconectado")
+
     print("="*60)
     print(">>   Worker encerrado com sucesso")
     print(f">> Total de frames processados: {sum(state.camera_frame_count.values())}")
@@ -343,6 +347,10 @@ def main():
 
     # Conectar clientes
     state.supabase = create_client(config.SUPABASE_URL, config.SUPABASE_KEY)
+    from src.mqtt_service import MQTTService
+    state.mqtt_service = MQTTService()
+    state.mqtt_service.connect()
+    print(">> [MQTT] Cliente conectado ao broker.hivemq.com")
     print(">> [REALTIME] Preparando conexao com Supabase Realtime...")
     print(">> Supabase conectado")
 

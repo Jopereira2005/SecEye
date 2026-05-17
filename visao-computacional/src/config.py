@@ -49,3 +49,8 @@ PROCESS_ALIVE_FILE = "worker_alive.txt"
 # Preferencialmente configure 'trigger_url' na tabela cameras do Supabase.
 # Este dicionário é apenas fallback para compatibilidade.
 CAMERA_TRIGGER_URLS: dict[int, str] = {}
+
+# ================== MQTT ==================
+MQTT_BROKER = os.getenv("MQTT_BROKER", "broker.hivemq.com")
+MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
+MQTT_TOPIC = os.getenv("MQTT_TOPIC", "teste/esp32")
