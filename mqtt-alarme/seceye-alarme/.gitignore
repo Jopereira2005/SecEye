@@ -1,0 +1,59 @@
+# Arquivos de build
+build/
+*.pio/
+*.pioenvs/
+*.piolibdeps/
+.pio/libdeps/
+.pio/build/
+
+# Arquivos temporários
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*.swn
+*.dmp
+*.log
+
+# Arquivos de configuração do VS Code
+.vscode/
+
+# Arquivos de firmware
+*.bin
+*.elf
+*.hex
+*.map
+*.eep
+*.dmp
+*.obj
+*.a
+*.o
+*.d
+
+# Arquivos de upload
+*.upload
+
+# Arquivos de dependências
+lib/
+
+# Arquivos do Arduino
+*.ino.*
+*.cpp.*
+*.ino.cpp
+*.ino.bin
+*.ino.elf
+*.ino.hex
+
+# Outros
+.DS_Store
+Thumbs.db
+*.orig
+*.pyc
+__pycache__/
+
+# Arquivos de configuração do PlatformIO
+platformio.ini
+
+# Arquivos de configuração do projeto
+config.h

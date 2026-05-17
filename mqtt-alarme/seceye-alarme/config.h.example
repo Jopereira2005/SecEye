@@ -1,0 +1,15 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+const char* WIFI_SSID = "SEU_WIFI_AQUI";
+const char* WIFI_PASSWORD = "SUA_SENHA_AQUI";
+
+const char* MQTT_BROKER = "SEU_IP_ORACLE";
+const char* MQTT_TOPIC = "teste/esp32";
+const char* MQTT_USER = "seceye";
+const char* MQTT_PASS = "SUA_SENHA_MQTT_AQUI";
+const int MQTT_PORT = 1883;
+
+const int ALARM_PIN = 2;
+
+#endif
