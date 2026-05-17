@@ -51,6 +51,8 @@ PROCESS_ALIVE_FILE = "worker_alive.txt"
 CAMERA_TRIGGER_URLS: dict[int, str] = {}
 
 # ================== MQTT ==================
-MQTT_BROKER = os.getenv("MQTT_BROKER", "broker.hivemq.com")
+MQTT_BROKER = os.getenv("MQTT_BROKER")
 MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 MQTT_TOPIC = os.getenv("MQTT_TOPIC", "teste/esp32")
+MQTT_USER = os.getenv("MQTT_USER")
+MQTT_PASS = os.getenv("MQTT_PASS")

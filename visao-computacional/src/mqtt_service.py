@@ -14,6 +14,8 @@ class MQTTService:
         self.client_id = CLIENT_ID
         self.connected = False
         self.client = mqtt.Client(client_id=self.client_id, clean_session=True)
+        if config.MQTT_USER:
+            self.client.username_pw_set(config.MQTT_USER, config.MQTT_PASS)
         self.client.on_connect = self._on_connect
         self.client.on_disconnect = self._on_disconnect
         self.client.reconnect_delay_set(min_delay=1, max_delay=30)

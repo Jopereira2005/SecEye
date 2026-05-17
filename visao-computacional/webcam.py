@@ -14,6 +14,9 @@ import cv2
 import torch
 from ultralytics import YOLO
 
+from src import config
+from src.mqtt_service import MQTTService
+
 
 def main():
     parser = argparse.ArgumentParser(description="Detecção de pessoas via webcam (YOLOv8)")
@@ -45,12 +48,17 @@ def main():
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, args.height)
     cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
+    print(f">> Conectando MQTT em {config.MQTT_BROKER}:{config.MQTT_PORT}...")
+    mqtt = MQTTService()
+    mqtt.connect()
+
     print(">> Pressione 'q' para sair")
     print(">> Pressione 's' para salvar screenshot")
 
     fps_t0 = time.time()
     fps_count = 0
     fps_display = 0.0
+    detectando = False
 
     while True:
         ok, frame = cap.read()
@@ -84,6 +92,14 @@ def main():
                     2,
                 )
 
+        # MQTT: publica apenas em transições (1 ao detectar, 0 ao parar)
+        if pessoas > 0 and not detectando:
+            detectando = True
+            mqtt.publish_trigger("1")
+        elif pessoas == 0 and detectando:
+            detectando = False
+            mqtt.publish_trigger("0")
+
         # FPS
         fps_count += 1
         elapsed = time.time() - fps_t0
@@ -114,6 +130,9 @@ def main():
 
     cap.release()
     cv2.destroyAllWindows()
+    if detectando:
+        mqtt.publish_trigger("0")
+    mqtt.disconnect()
     print(">> Encerrado")
 
 
