@@ -133,6 +133,39 @@ export async function getSession(): Promise<Result<Session | null>> {
   }
 }
 
+export async function getCurrentProfile(): Promise<Result<IUser | null>> {
+  try {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+
+    if (userError) {
+      console.error('getCurrentProfile auth error:', userError);
+      return { data: null, error: userError };
+    }
+
+    if (!userData.user) {
+      const error = new Error('Nenhum usuário autenticado.');
+      console.error('getCurrentProfile:', error.message);
+      return { data: null, error };
+    }
+
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userData.user.id)
+      .single<IUser>();
+
+    if (error) {
+      console.error('getCurrentProfile query error:', error);
+      return { data: null, error };
+    }
+
+    return { data, error: null };
+  } catch (error) {
+    console.error('getCurrentProfile exception:', error);
+    return { data: null, error: error as Error };
+  }
+}
+
 export function onAuthStateChange(
   callback: (event: AuthChangeEvent, session: Session | null) => void
 ) {
