@@ -10,16 +10,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { styles } from './styles';
+import { CustomColors } from '@/constants/theme';
 
 export default function Login() {
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
     return (
         <LinearGradient
-            colors={['#111318', '#111318', '#111318']}
+            colors={[CustomColors.dark, CustomColors.dark, CustomColors.dark]}
             style={styles.container}
         >
-            <Image source={require('@/assets/images/Vector.png')} style={styles.logoImage} />
+            <Image source={require('@/assets/images/Vector.png')} style={styles.logoImage} resizeMode="contain" />
 
             <Text style={styles.title}>
                 <Text>Sec</Text>
@@ -48,20 +49,20 @@ export default function Login() {
             <Text style={styles.label}>E-MAIL OU USUÁRIO</Text>
 
             <View style={styles.inputWrapper}>
-                <Ionicons name="person" size={18} color="#A5ADAB" style={{ marginRight: 8 }} /> 
+                <Ionicons name="person" size={18} color={CustomColors.grayScale} style={{ marginRight: 8 }} /> 
                 <TextInput
                 placeholder="Ex: usuario@email.com"
-                placeholderTextColor="#A5ADAB"
+                placeholderTextColor={CustomColors.grayScale}
                 style={styles.input}
             /></View>
 
 
             <Text style={styles.label}>SENHA DE ACESSO</Text>
             <View style={styles.inputWrapper}>
-                <Ionicons name="lock-closed" size={18} color="#A5ADAB" style={{ marginRight: 8 }} />
+                <Ionicons name="lock-closed" size={18} color={CustomColors.grayScale} style={{ marginRight: 8 }} />
                 <TextInput
                     placeholder="••••••••"
-                    placeholderTextColor="#A5ADAB"
+                    placeholderTextColor={CustomColors.grayScale}
                     secureTextEntry={!showPassword}
                     style={[styles.input, styles.passwordInput]}
                 />
@@ -70,7 +71,7 @@ export default function Login() {
                     style={styles.eyeButton}
                     accessibilityLabel={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                 >
-                    <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={20} color="#A5ADAB" />
+                    <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={20} color={CustomColors.grayScale} />
                 </TouchableOpacity>
             </View>
 
@@ -80,7 +81,7 @@ export default function Login() {
 
             <TouchableOpacity>
                 <LinearGradient
-                    colors={['#0052CC', '#48D7F9']}
+                    colors={[CustomColors.secondary, CustomColors.tertiary]}
                     style={styles.loginButton}
                 >
                     <Text style={styles.loginButtonText}>Entrar →</Text>

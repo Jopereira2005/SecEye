@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { styles } from './styles';
 import { useRouter } from 'expo-router';
-
+import { CustomColors } from '@/constants/theme';
 
 export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
@@ -19,11 +19,11 @@ export default function Login() {
     return (
         
         <LinearGradient
-            colors={['#111318', '#111318', '#111318']}
+            colors={[CustomColors.dark, CustomColors.dark, CustomColors.dark]}
             style={styles.container}
         >
             <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
-            <Image source={require('@/assets/images/Vector.png')} style={styles.logoImage} />
+            <Image source={require('@/assets/images/Vector.png')} style={styles.logoImage} resizeMode="contain" />
 
             <Text style={styles.title}>
                 <Text>Sec</Text>
@@ -52,30 +52,30 @@ export default function Login() {
         <Text style={styles.label}>NOME DE USUÁRIO</Text>
 
             <View style={styles.inputWrapper}>
-                <Ionicons name="person" size={18} color="#A5ADAB" style={{ marginRight: 8 }} /> 
+                <Ionicons name="person" size={18} color={CustomColors.grayScale} style={{ marginRight: 8 }} /> 
                 <TextInput
                 placeholder="Ex: Seu nome de usuário"
-                placeholderTextColor="#A5ADAB"
+                placeholderTextColor={CustomColors.grayScale}
                 style={styles.input}
             /></View>
 
             <Text style={styles.label}>E-MAIL</Text>
 
             <View style={styles.inputWrapper}>
-                <Ionicons name="person" size={18} color="#A5ADAB" style={{ marginRight: 8 }} /> 
+                <Ionicons name="person" size={18} color={CustomColors.grayScale} style={{ marginRight: 8 }} /> 
                 <TextInput
                 placeholder="Ex: usuario@email.com"
-                placeholderTextColor="#A5ADAB"
+                placeholderTextColor={CustomColors.grayScale}
                 style={styles.input}
             /></View>
 
 
             <Text style={styles.label}>CRIAR SENHA</Text>
             <View style={styles.inputWrapper}>
-                <Ionicons name="lock-closed" size={18} color="#A5ADAB" style={{ marginRight: 8 }} />
+                <Ionicons name="lock-closed" size={18} color={CustomColors.grayScale} style={{ marginRight: 8 }} />
                 <TextInput
                     placeholder="••••••••"
-                    placeholderTextColor="#A5ADAB"
+                    placeholderTextColor={CustomColors.grayScale}
                     secureTextEntry={!showPassword}
                     style={[styles.input, styles.passwordInput]}
                 />
@@ -83,10 +83,10 @@ export default function Login() {
 
             <Text style={styles.label}>CONFIRMAR A SENHA</Text>
             <View style={styles.inputWrapper}>
-                <Ionicons name="lock-closed" size={18} color="#A5ADAB" style={{ marginRight: 8 }} />
+                <Ionicons name="lock-closed" size={18} color={CustomColors.grayScale} style={{ marginRight: 8 }} />
                 <TextInput
                     placeholder="••••••••"
-                    placeholderTextColor="#A5ADAB"
+                    placeholderTextColor={CustomColors.grayScale}
                     secureTextEntry={!showPassword}
                     style={[styles.input, styles.passwordInput]}
                 />
@@ -94,7 +94,7 @@ export default function Login() {
 
             <TouchableOpacity>
                 <LinearGradient
-                    colors={['#0052CC', '#48D7F9']}
+                    colors={[CustomColors.secondary, CustomColors.tertiary]}
                     style={styles.loginButton}
                 >
                     <Text style={styles.loginButtonText}>Entrar →</Text>

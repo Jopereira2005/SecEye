@@ -1,11 +1,13 @@
 import { StyleSheet } from 'react-native';
+import { CustomColors, CustomFonts } from '@/constants/theme';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
-    backgroundColor: '#111318',
+    backgroundColor: CustomColors.dark,
+    fontFamily: CustomFonts.inter,
   },
 
   scrollView: {
@@ -23,9 +25,7 @@ export const styles = StyleSheet.create({
     padding: 28,
     borderWidth: 1,
     borderColor: 'rgba(0,180,255,0.2)',
-    shadowColor: '#00BFFF',
-    shadowOpacity: 0.35,
-    shadowRadius: 20,
+    boxShadow: `0px 0px 20px ${CustomColors.tertiary}59`,
     elevation: 12,
   },
 
@@ -39,7 +39,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 18,
     borderWidth: 1,
-    borderColor: '#00BFFF',
+    borderColor: CustomColors.tertiary,
   },
 
   logoImage: {
@@ -47,40 +47,43 @@ export const styles = StyleSheet.create({
     height: 64,
     alignSelf: 'center',
     marginBottom: 10,
-    resizeMode: 'contain',
   },
 
   logoText: {
-    color: '#00D4FF',
+    color: CustomColors.tertiary,
     fontSize: 30,
     fontWeight: '700',
+    fontFamily: CustomFonts.daysOne,
   },
 
   title: {
-    color: '#F3FFFB',
+    color: CustomColors.light,
     fontSize: 30,
     fontWeight: '700',
     textAlign: 'center',
+    fontFamily: CustomFonts.daysOne,
   },
 
   titleBlue: {
-    color: '#48D7F9',
+    color: CustomColors.tertiary,
     fontSize: 30,
     fontWeight: '700',
     textAlign: 'center',
+    fontFamily: CustomFonts.daysOne,
   },
 
   subtitle: {
-    color: '#7D8A9A',
+    color: CustomColors.grayScale,
     fontSize: 13,
     textAlign: 'center',
     marginTop: 6,
     marginBottom: 24,
+    fontFamily: CustomFonts.inter,
   },
 
   switchContainer: {
     flexDirection: 'row',
-    backgroundColor: '#2B2E3A',
+    backgroundColor: CustomColors.quartenary,
     borderRadius: 24,
     padding: 4,
     marginBottom: 24,
@@ -94,24 +97,27 @@ export const styles = StyleSheet.create({
   },
 
   activeButton: {
-    backgroundColor: '#282A2E',
+    backgroundColor: CustomColors.grayScaleDark,
   },
 
   activeText: {
-    color: '#B2C5FF',
+    color: CustomColors.primary,
     fontWeight: '700',
+    fontFamily: CustomFonts.inter,
   },
 
   inactiveText: {
-    color: '#A5ADAB',
+    color: CustomColors.grayScale,
     fontWeight: '600',
+    fontFamily: CustomFonts.inter,
   },
 
   label: {
-    color: '#A5ADAB',
+    color: CustomColors.grayScale,
     fontSize: 12,
     marginBottom: 8,
     marginTop: 10,
+    fontFamily: CustomFonts.inter,
   },
 
   input: {
@@ -119,15 +125,16 @@ export const styles = StyleSheet.create({
     borderRadius: 0,
     paddingHorizontal: 4,
     paddingVertical: 14,
-    color: '#FFFFFF',
+    color: CustomColors.light,
     borderWidth: 0,
     borderColor: 'transparent',
+    fontFamily: CustomFonts.inter,
   },
 
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2B2E3A',
+    backgroundColor: CustomColors.quartenary,
     borderRadius: 24,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
@@ -144,10 +151,11 @@ export const styles = StyleSheet.create({
     marginLeft: 4,
   },
   forgotPassword: {
-    color: '#48D7F9',
+    color: CustomColors.tertiary,
     fontSize: 12,
     textAlign: 'right',
     marginTop: 10,
+    fontFamily: CustomFonts.inter,
   },
 
   loginButton: {
@@ -158,9 +166,10 @@ export const styles = StyleSheet.create({
   },
 
   loginButtonText: {
-    color: '#F3FFFB',
+    color: CustomColors.light,
     fontSize: 16,
     fontWeight: '700',
+    fontFamily: CustomFonts.inter,
   },
 
   divider: {
@@ -176,9 +185,10 @@ export const styles = StyleSheet.create({
   },
 
   dividerText: {
-    color: '#6D7A8B',
+    color: CustomColors.grayScale,
     marginHorizontal: 10,
     fontSize: 11,
+    fontFamily: CustomFonts.inter,
   },
 
   socialContainer: {
@@ -188,7 +198,7 @@ export const styles = StyleSheet.create({
 
   socialButton: {
     flex: 1,
-    backgroundColor: '#2B2E3A',
+    backgroundColor: CustomColors.quartenary,
     paddingVertical: 14,
     paddingHorizontal: 12,
     borderRadius: 16,
@@ -199,7 +209,12 @@ export const styles = StyleSheet.create({
   },
 
   socialText: {
-    color: '#F3FFFB',
+    color: CustomColors.light,
     fontWeight: '600',
+    fontFamily: CustomFonts.inter,
   },
 });
+
+export default function StylesRoute() {
+  return null;
+}
