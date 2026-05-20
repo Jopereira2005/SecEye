@@ -4,7 +4,6 @@ import { useFonts, Inter_400Regular } from '@expo-google-fonts/inter';
 import { DaysOne_400Regular } from '@expo-google-fonts/days-one';
 import * as SplashScreen from 'expo-splash-screen';
 
-// Previne que a tela de splash suma antes de carregar a fonte
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
