@@ -2,28 +2,52 @@ import React, { useState } from 'react';
 import {
     View,
     Text,
-    TextInput,
     TouchableOpacity,
-    Image,
     ScrollView,
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { User, Lock, Mail } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { styles } from './styles';
+import { styles } from './login.styles';
 import { useRouter } from 'expo-router';
+import { Image } from 'expo-image';
+import { Button } from '@/components/Button/button';
+import { Input } from '@/components/Input/input';
 import { CustomColors } from '@/constants/theme';
+
 
 export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
     return (
-        
+        <KeyboardAvoidingView 
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={{ flex: 1 }}
+        >
         <LinearGradient
             colors={[CustomColors.dark, CustomColors.dark, CustomColors.dark]}
             style={styles.container}
         >
-            <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
-            <Image source={require('@/assets/images/Vector.png')} style={styles.logoImage} resizeMode="contain" />
+            <LinearGradient
+                colors={[CustomColors.primary, 'transparent', CustomColors.tertiary]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[StyleSheet.absoluteFillObject, { opacity: 0.05 }]}
+                pointerEvents="none"
+            />
+            <ScrollView 
+                style={styles.scrollView} 
+                contentContainerStyle={styles.scrollViewContent}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+            >
+            <Image 
+                source={require('@/assets/svgs/logo.svg')} 
+                style={styles.logoImage} 
+                contentFit="contain" 
+            />
 
             <Text style={styles.title}>
                 <Text>Sec</Text>
@@ -49,57 +73,41 @@ export default function Login() {
                 </TouchableOpacity>
             </View>
 
-        <Text style={styles.label}>NOME DE USUÁRIO</Text>
-
-            <View style={styles.inputWrapper}>
-                <Ionicons name="person" size={18} color={CustomColors.grayScale} style={{ marginRight: 8 }} /> 
-                <TextInput
+            <Input
+                label="NOME DE USUÁRIO"
                 placeholder="Ex: Seu nome de usuário"
-                placeholderTextColor={CustomColors.grayScale}
-                style={styles.input}
-            /></View>
+                icon={<User color={CustomColors.grayScale} size={18} />}
+                autoCapitalize="none"
+            />
 
-            <Text style={styles.label}>E-MAIL</Text>
-
-            <View style={styles.inputWrapper}>
-                <Ionicons name="person" size={18} color={CustomColors.grayScale} style={{ marginRight: 8 }} /> 
-                <TextInput
+            <Input
+                label="E-MAIL"
                 placeholder="Ex: usuario@email.com"
-                placeholderTextColor={CustomColors.grayScale}
-                style={styles.input}
-            /></View>
+                icon={<Mail color={CustomColors.grayScale} size={18} />}
+                keyboardType="email-address"
+                autoCapitalize="none"
+            />
 
+            <Input
+                label="CRIAR SENHA"
+                placeholder="••••••••"
+                icon={<Lock color={CustomColors.grayScale} size={18} />}
+                isPassword
+            />
 
-            <Text style={styles.label}>CRIAR SENHA</Text>
-            <View style={styles.inputWrapper}>
-                <Ionicons name="lock-closed" size={18} color={CustomColors.grayScale} style={{ marginRight: 8 }} />
-                <TextInput
-                    placeholder="••••••••"
-                    placeholderTextColor={CustomColors.grayScale}
-                    secureTextEntry={!showPassword}
-                    style={[styles.input, styles.passwordInput]}
-                />
-            </View>
+            <Input
+                label="CONFIRMAR A SENHA"
+                placeholder="••••••••"
+                icon={<Lock color={CustomColors.grayScale} size={18} />}
+                isPassword
+            />
 
-            <Text style={styles.label}>CONFIRMAR A SENHA</Text>
-            <View style={styles.inputWrapper}>
-                <Ionicons name="lock-closed" size={18} color={CustomColors.grayScale} style={{ marginRight: 8 }} />
-                <TextInput
-                    placeholder="••••••••"
-                    placeholderTextColor={CustomColors.grayScale}
-                    secureTextEntry={!showPassword}
-                    style={[styles.input, styles.passwordInput]}
-                />
-            </View>
-
-            <TouchableOpacity>
-                <LinearGradient
-                    colors={[CustomColors.secondary, CustomColors.tertiary]}
-                    style={styles.loginButton}
-                >
-                    <Text style={styles.loginButtonText}>Entrar →</Text>
-                </LinearGradient>
-            </TouchableOpacity>
+            <Button 
+                variant="gradient" 
+                containerStyle={styles.loginButton}
+            >
+                <Text style={styles.loginButtonText}>Cadastrar →</Text>
+            </Button>
 
             <View style={styles.divider}>
                 <View style={styles.line} />
@@ -109,17 +117,17 @@ export default function Login() {
 
             <View style={styles.socialContainer}>
                 <TouchableOpacity style={styles.socialButton}>
-                    <Image source={require('@/assets/images/GoogleIcon.png')} style={{ width: 18.05, height: 20, marginRight: 8 }} />
+                    <Image source={require('@/assets/svgs/google-icon.svg')} style={styles.socialIcon} />
                     <Text style={styles.socialText}>Google</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.socialButton}>
-                    <Image source={require('@/assets/images/BiometricsIcon.png')} style={{ width: 18.05, height: 20, marginRight: 8 }} />
+                    <Image source={require('@/assets/svgs/biometrics-icon.svg')} style={styles.socialIcon} />
                     <Text style={styles.socialText}>Biometria</Text>
                 </TouchableOpacity>
             </View>
             </ScrollView>
         </LinearGradient>
-        
+        </KeyboardAvoidingView>
     );
 }
