@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Shield, TriangleAlert, Clock, Scan } from 'lucide-react-native';
+import { Image } from 'expo-image';
 import { Header } from '@/components/Header/header';
 import { Navbar } from '@/components/Navbar/navbar';
 import { Button } from '@/components/Button/button';
@@ -19,7 +20,7 @@ export default function Home() {
       >
         <View style={styles.profileSection}>
           <Image 
-            source={{ uri: 'https://i.pravatar.cc/150?img=11' }} // Placeholder for the avatar
+            source={require('@/assets/images/avatar.png')}
             style={styles.avatar} 
           />
           <View style={styles.profileTextContainer}>
