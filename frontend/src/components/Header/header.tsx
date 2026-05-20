@@ -23,7 +23,7 @@ export function Header() {
       </View>
 
       <TouchableOpacity style={styles.notificationButton}  activeOpacity={0.8}>
-        <Bell color={CustomColors.light} size={20} onPress={() => router.push('/login')} />
+        <Bell color={CustomColors.light} size={20} onPress={() => router.push('/login' as any)} />
       </TouchableOpacity>
     </View>
   );

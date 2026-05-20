@@ -2,17 +2,14 @@ import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Shield, TriangleAlert, Clock, Scan } from 'lucide-react-native';
 import { Image } from 'expo-image';
-import { Header } from '@/components/Header/header';
-import { Navbar } from '@/components/Navbar/navbar';
+
 import { Button } from '@/components/Button/button';
-import { styles } from './home.styles';
+import { styles } from './_home.styles';
 import { CustomColors } from '@/constants/theme';
 
 export default function Home() {
   return (
     <View style={styles.container}>
-      <Header />
-      
       <ScrollView 
         style={styles.scrollView} 
         contentContainerStyle={styles.contentContainer}
@@ -87,8 +84,6 @@ export default function Home() {
           ))}
         </View>
       </ScrollView>
-
-      <Navbar />
     </View>
   );
 }

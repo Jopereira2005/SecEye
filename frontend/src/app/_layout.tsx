@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Slot } from 'expo-router';
 import { useFonts, Inter_400Regular } from '@expo-google-fonts/inter';
 import { DaysOne_400Regular } from '@expo-google-fonts/days-one';
 import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -23,6 +24,26 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }} />
+    <>
+      <StatusBar style="light" />
+      {/* 
+        ========================================================
+        PROVIDERS GLOBAIS ENTRARIAM AQUI:
+        <AuthProvider>
+          <ThemeProvider>
+            <ReduxProvider store={store}>
+        ========================================================
+      */}
+      
+      <Slot />
+
+      {/* 
+        ========================================================
+            </ReduxProvider>
+          </ThemeProvider>
+        </AuthProvider>
+        ========================================================
+      */}
+    </>
   );
 }

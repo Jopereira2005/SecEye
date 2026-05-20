@@ -10,11 +10,12 @@ import {
 } from 'react-native';
 import { User, Lock, Mail } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { styles } from './login.styles';
 import { useRouter } from 'expo-router';
-import { Image } from 'expo-image';
 import { Button } from '@/components/Button/button';
 import { Input } from '@/components/Input/input';
+import { Logo } from '@/components/Logo/logo';
+import { SocialAuth } from '@/components/SocialAuth';
+import { styles } from './_auth.styles';
 import { CustomColors } from '@/constants/theme';
 
 
@@ -34,8 +35,7 @@ export default function Login() {
                 colors={[CustomColors.primary, 'transparent', CustomColors.tertiary]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                style={[StyleSheet.absoluteFillObject, { opacity: 0.05 }]}
-                pointerEvents="none"
+                style={[StyleSheet.absoluteFillObject, { opacity: 0.05, pointerEvents: 'none' }]}
             />
             <ScrollView 
                 style={styles.scrollView} 
@@ -43,31 +43,19 @@ export default function Login() {
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
             >
-            <Image 
-                source={require('@/assets/svgs/logo.svg')} 
-                style={styles.logoImage} 
-                contentFit="contain" 
-            />
-
-            <Text style={styles.title}>
-                <Text>Sec</Text>
-                <Text style={styles.titleBlue}>Eye</Text>
-            </Text>
-            <Text style={styles.subtitle}>
-                Proteção inteligente sob medida.
-            </Text>
+            <Logo />
 
             <View style={styles.switchContainer}>
                 <TouchableOpacity
                     style={styles.switchButton}
-                    onPress={() => router.push('/login')}
+                    onPress={() => router.push('/login' as any)}
                 >
                     <Text style={styles.inactiveText}>ENTRAR</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                     style={[styles.switchButton, styles.activeButton]}
-                    onPress={() => router.push('/sign-up')}
+                    onPress={() => router.push('/sign-up' as any)}
                 >
                     <Text style={styles.activeText}>CADASTRAR</Text>
                 </TouchableOpacity>
@@ -109,23 +97,7 @@ export default function Login() {
                 <Text style={styles.loginButtonText}>Cadastrar →</Text>
             </Button>
 
-            <View style={styles.divider}>
-                <View style={styles.line} />
-                <Text style={styles.dividerText}>OU AUTENTIQUE VIA</Text>
-                <View style={styles.line} />
-            </View>
-
-            <View style={styles.socialContainer}>
-                <TouchableOpacity style={styles.socialButton}>
-                    <Image source={require('@/assets/svgs/google-icon.svg')} style={styles.socialIcon} />
-                    <Text style={styles.socialText}>Google</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.socialButton}>
-                    <Image source={require('@/assets/svgs/biometrics-icon.svg')} style={styles.socialIcon} />
-                    <Text style={styles.socialText}>Biometria</Text>
-                </TouchableOpacity>
-            </View>
+            <SocialAuth />
             </ScrollView>
         </LinearGradient>
         </KeyboardAvoidingView>

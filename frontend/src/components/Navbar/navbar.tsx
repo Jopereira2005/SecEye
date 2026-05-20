@@ -2,29 +2,44 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Video, Clock, Home, User, TriangleAlert } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { useRouter } from 'expo-router';
 import { CustomColors } from '@/constants/theme';
 import { styles } from './navbar.styles';
 
-export function Navbar() {
+export function Navbar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const activeTab = 'home'; // hardcoded for this screen
+  const router = useRouter();
 
   const tabs = [
-    { id: 'devices', label: 'DISPOSITIVOS', Icon: Video },
-    { id: 'routine', label: 'ROTINA', Icon: Clock },
-    { id: 'home', label: 'INÍCIO', Icon: Home },
-    { id: 'profile', label: 'PERFIL', Icon: User },
-    { id: 'occurrences', label: 'OCORRÊNCIAS', Icon: TriangleAlert },
+    { id: 'devices', route: 'devices/index', label: 'DISPOSITIVOS', Icon: Video },
+    { id: 'routine', route: 'routine/index', label: 'ROTINA', Icon: Clock },
+    { id: 'home', route: 'home/index', label: 'INÍCIO', Icon: Home },
+    { id: 'profile', route: 'profile/index', label: 'PERFIL', Icon: User },
+    { id: 'occurrences', route: 'occurrences/index', label: 'OCORRÊNCIAS', Icon: TriangleAlert },
   ];
 
   return (
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-      {tabs.map((tab) => {
-        const isActive = tab.id === activeTab;
+      {tabs.map((tab, index) => {
+        // Find if this tab matches the current active route name
+        const currentRouteName = state.routes[state.index].name;
+        const isActive = currentRouteName === tab.route || currentRouteName === tab.id;
         const color = isActive ? CustomColors.primary : CustomColors.grayScale;
 
+        const onPress = () => {
+          if (!isActive) {
+            router.push(`/(tabs)/${tab.id}` as any);
+          }
+        };
+
         return (
-          <TouchableOpacity key={tab.id} style={styles.tab} activeOpacity={0.7}>
+          <TouchableOpacity 
+            key={tab.id} 
+            style={styles.tab} 
+            activeOpacity={0.7}
+            onPress={onPress}
+          >
             <tab.Icon color={color} size={24} style={styles.icon} />
             <Text style={[styles.label, { color }]}>{tab.label}</Text>
           </TouchableOpacity>
