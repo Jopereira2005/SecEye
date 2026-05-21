@@ -18,8 +18,8 @@ export const styles = StyleSheet.create({
   },
 
   logoImage: {
-    width: moderateScale(24),
-    height: moderateScale(24),
+    width: moderateScale(30),
+    height: moderateScale(30),
     marginRight: Spacing.sm,
   },
 

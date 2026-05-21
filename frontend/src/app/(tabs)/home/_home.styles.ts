@@ -40,7 +40,7 @@ export const styles = StyleSheet.create({
     fontSize: moderateScale(30),
     fontWeight: 'bold',
     color: CustomColors.light,
-    marginBottom: moderateScale(4),
+    marginBottom: Spacing.xs,
     fontFamily: CustomFonts.inter,
   },
 
@@ -192,7 +192,7 @@ export const styles = StyleSheet.create({
     fontSize: moderateScale(16),
     fontWeight: 'bold',
     color: CustomColors.light,
-    marginBottom: moderateScale(4),
+    marginBottom: Spacing.xs,
     fontFamily: CustomFonts.inter,
   },
 

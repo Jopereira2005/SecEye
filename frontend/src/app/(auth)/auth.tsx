@@ -23,12 +23,7 @@ import { AuthSwitch } from "@/components/AuthSwitch/auth-switch";
 import { styles } from "./_auth.styles";
 import { CustomColors } from "@/constants/theme";
 
-if (
-  Platform.OS === "android" &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+// LayoutAnimation is natively supported in the New Architecture, no experimental flag needed.
 
 export default function AuthScreen() {
   const router = useRouter();

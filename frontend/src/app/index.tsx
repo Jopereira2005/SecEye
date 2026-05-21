@@ -9,5 +9,5 @@ export default function TrafficController() {
     return <Redirect href={"/home" as any} />;
   }
 
-  return <Redirect href={"/login" as any} />;
+  return <Redirect href={"/auth" as any} />;
 }

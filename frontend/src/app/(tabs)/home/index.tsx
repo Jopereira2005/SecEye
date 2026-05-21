@@ -5,7 +5,7 @@ import { Image } from 'expo-image';
 
 import { Button } from '@/components/Button/button';
 import { styles } from './_home.styles';
-import { CustomColors } from '@/constants/theme';
+import { CustomColors, Spacing } from '@/constants/theme';
 
 export default function Home() {
   return (
@@ -33,7 +33,7 @@ export default function Home() {
         <Button 
           variant="gradient"
           size="large"
-          containerStyle={{ marginBottom: 24 }}
+          containerStyle={{ marginBottom: Spacing.lg }}
         >
           <View style={styles.shieldIconContainer}>
             <Shield color={CustomColors.light} size={32} fill={CustomColors.light} />

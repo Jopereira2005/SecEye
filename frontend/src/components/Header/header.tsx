@@ -13,17 +13,17 @@ export function Header() {
 
   return (
     <View style={[styles.container, { paddingTop: Math.max(insets.top, 16) }]}>
-      <View style={styles.logoContainer}>
-        <Image 
+      <TouchableOpacity style={styles.logoContainer} onPress={() => router.push('/auth')} activeOpacity={0.8}>
+        <Image
           source={require('@/assets/svgs/logo.svg')} 
           style={styles.logoImage} 
           contentFit="contain" 
         />
         <Text style={styles.logoText}>Sec<Text style={styles.logoHighlight}>Eye</Text></Text>
-      </View>
+      </TouchableOpacity>
 
-      <TouchableOpacity style={styles.notificationButton}  activeOpacity={0.8}>
-        <Bell color={CustomColors.light} size={20} onPress={() => router.push('/login' as any)} />
+      <TouchableOpacity style={styles.notificationButton} activeOpacity={0.8} onPress={() => router.push('/auth')}>
+        <Bell color={CustomColors.light} size={20} />
       </TouchableOpacity>
     </View>
   );
