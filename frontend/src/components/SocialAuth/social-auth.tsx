@@ -1,7 +1,7 @@
 import React, { use } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
-import { styles } from './_social-auth.styles';
+import { styles } from './social-auth.styles';
 import { useRouter } from 'expo-router';
 
 export function SocialAuth() {
