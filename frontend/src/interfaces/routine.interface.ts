@@ -7,6 +7,9 @@ export interface IRoutine {
   days_week: string[];
   hora_inicio: string;
   hora_fim: string;
-  
+  repeat_type: 'once' | 'daily' | 'weekly';
+  specific_date: string;
+  is_active: boolean;
+
   user?: IUser;
 }
