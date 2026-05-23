@@ -8,6 +8,22 @@ def agora_utc():
     return datetime.now(timezone.utc)
 
 
+def _no_intervalo(ini: str, fim: str, hora_atual: str) -> bool:
+    """
+    Verifica se hora_atual está dentro do intervalo [ini, fim].
+
+    Intervalos que cruzam a meia-noite (ini > fim) são tratados como
+    dois segmentos: [ini, "23:59"] ∪ ["00:00", fim].
+    Ex.: ini="22:00", fim="06:00" cobre 22h–23:59 e 00:00–06h.
+    """
+    if ini <= fim:
+        # Intervalo normal dentro do mesmo dia
+        return ini <= hora_atual <= fim
+    else:
+        # Intervalo que atravessa a meia-noite
+        return hora_atual >= ini or hora_atual <= fim
+
+
 def hora_permitida(schedule):
     """
     Verifica se o horário atual está dentro dos intervalos permitidos.
@@ -24,6 +40,7 @@ def hora_permitida(schedule):
         repeat_type = 'weekly'   → verifica days_week (0=Seg, 6=Dom)
 
     Rotinas com is_active=False são ignoradas.
+    Suporta intervalos que cruzam a meia-noite (ex.: 22:00 → 06:00).
     """
     if not schedule:
         return True
@@ -48,7 +65,7 @@ def hora_permitida(schedule):
             if not ini or not fim:
                 continue
 
-            if not (ini <= hora_atual <= fim):
+            if not _no_intervalo(ini, fim, hora_atual):
                 continue
 
             days        = rotina.get('days_week') or []
@@ -78,7 +95,7 @@ def hora_permitida(schedule):
                 if not isinstance(intervalo, list) or len(intervalo) != 2:
                     continue
                 ini, fim = intervalo
-                if ini <= hora_atual <= fim:
+                if _no_intervalo(ini, fim, hora_atual):
                     return True
             return False
 
@@ -94,7 +111,7 @@ def hora_permitida(schedule):
         if not isinstance(intervalo, list) or len(intervalo) != 2:
             continue
         ini, fim = intervalo
-        if ini <= hora_atual <= fim:
+        if _no_intervalo(ini, fim, hora_atual):
             return True
 
     return False
