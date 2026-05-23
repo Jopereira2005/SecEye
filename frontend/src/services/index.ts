@@ -1,6 +1,7 @@
 export * from './auth.service';
 export * from './functions.service';
 export { deactivateAlarm, connectMqtt, disconnectMqtt } from './mqtt.service';
+export * from './user.service';
 export * from './cameras.service';
 export * from './occurrences.service';
 export * from './alarms.service';
