@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { moderateScale } from 'react-native-size-matters';
 
 const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';
@@ -16,6 +17,10 @@ export const CustomColors = {
   danger: '#ff5252',
   alert: '#ffab00',
   success: '#00c853',
+  applyOpacity: (hexColor: string, opacity: number) => {
+    const alpha = Math.round(opacity * 255).toString(16).padStart(2, '0');
+    return `${hexColor}${alpha}`;
+  },
 };
 
 export const Colors = {
@@ -64,3 +69,21 @@ export const Fonts = Platform.select({
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   },
 });
+
+export const Spacing = {
+  xs: moderateScale(4),
+  sm: moderateScale(8),
+  md: moderateScale(16),
+  lg: moderateScale(24),
+  xl: moderateScale(32),
+  xxl: moderateScale(48),
+};
+
+export const Shadows = {
+  card: {
+    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.25)',
+  },
+  primaryButton: {
+    boxShadow: `0px 4px 12px ${CustomColors.applyOpacity(CustomColors.primary, 0.25)}`,
+  },
+};

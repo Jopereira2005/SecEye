@@ -3,8 +3,8 @@ import { IAlarm } from './alarm.interface';
 
 export interface IAlarmGroup {
   id: string;
-  camera_id: string;
-  alarm_id: string;
+  camera_id: string | null;
+  alarm_id: string | null;
   
   camera?: ICamera;
   alarm?: IAlarm;
