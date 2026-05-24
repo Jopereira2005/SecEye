@@ -14,9 +14,9 @@ type Result<T> = { data: T | null; error: AuthError | PostgrestError | Error | n
 export async function signUp(
   email: string,
   password: string,
-  firstName: string,
-  lastName: string,
-  username: string
+  username: string,
+  firstName = '',
+  lastName = ''
 ): Promise<Result<{ user: AuthUser | null; session: Session | null; profile: IUser | null }>> {
   try {
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -42,8 +42,8 @@ export async function signUp(
         id: authData.user.id,
         email,
         username,
-        first_name: firstName,
-        last_name: lastName,
+        first_name: firstName || username,
+        last_name: lastName || '',
       })
       .select()
       .single<IUser>();
