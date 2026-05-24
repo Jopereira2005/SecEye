@@ -6,15 +6,15 @@ import { IOcurrence } from './ocurrence.interface';
 
 export interface ICamera {
   id: string;
-  user_id: string;
+  user_id: string | null;
   name: string;
   description: string | null;
-  severity: string;
+  severity: 'low' | 'medium' | 'high' | null;
   rtsp_url: string;
   min_confidence: number;
   process_every: number;
   cooldown_seconds: number;
-  status: string;
+  status: 'online' | 'offline';
   is_active: boolean;
   created_at: string;
   updated_at: string;

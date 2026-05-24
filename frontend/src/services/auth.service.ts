@@ -14,9 +14,9 @@ type Result<T> = { data: T | null; error: AuthError | PostgrestError | Error | n
 export async function signUp(
   email: string,
   password: string,
-  firstName: string,
-  lastName: string,
-  username: string
+  username: string,
+  firstName = '',
+  lastName = ''
 ): Promise<Result<{ user: AuthUser | null; session: Session | null; profile: IUser | null }>> {
   try {
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -42,8 +42,8 @@ export async function signUp(
         id: authData.user.id,
         email,
         username,
-        first_name: firstName,
-        last_name: lastName,
+        first_name: firstName || username,
+        last_name: lastName || '',
       })
       .select()
       .single<IUser>();
@@ -129,6 +129,39 @@ export async function getSession(): Promise<Result<Session | null>> {
     return { data: data.session, error: null };
   } catch (error) {
     console.error('getSession exception:', error);
+    return { data: null, error: error as Error };
+  }
+}
+
+export async function getCurrentProfile(): Promise<Result<IUser | null>> {
+  try {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+
+    if (userError) {
+      console.error('getCurrentProfile auth error:', userError);
+      return { data: null, error: userError };
+    }
+
+    if (!userData.user) {
+      const error = new Error('Nenhum usuário autenticado.');
+      console.error('getCurrentProfile:', error.message);
+      return { data: null, error };
+    }
+
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userData.user.id)
+      .single<IUser>();
+
+    if (error) {
+      console.error('getCurrentProfile query error:', error);
+      return { data: null, error };
+    }
+
+    return { data, error: null };
+  } catch (error) {
+    console.error('getCurrentProfile exception:', error);
     return { data: null, error: error as Error };
   }
 }

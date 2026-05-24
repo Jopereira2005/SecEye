@@ -22,17 +22,100 @@ import { SocialAuth } from "@/components/SocialAuth/social-auth";
 import { AuthSwitch } from "@/components/AuthSwitch/auth-switch";
 import { styles } from "./_auth.styles";
 import { CustomColors } from "@/constants/theme";
+import { signIn, signUp } from "@/services/auth.service";
 
 // LayoutAnimation is natively supported in the New Architecture, no experimental flag needed.
 
 export default function AuthScreen() {
   const router = useRouter();
   const [mode, setMode] = useState<"login" | "sign-up">("login");
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [signupUsername, setSignupUsername] = useState('');
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
+  const [signupPasswordConfirm, setSignupPasswordConfirm] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+  const [feedbackType, setFeedbackType] = useState<'error' | 'success' | null>(null);
+
+  const clearFeedback = () => {
+    setFeedbackMessage(null);
+    setFeedbackType(null);
+  };
 
   const handleTabChange = (newMode: "login" | "sign-up") => {
     if (newMode !== mode) {
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setMode(newMode);
+      clearFeedback();
+    }
+  };
+
+  const handleLogin = async () => {
+    clearFeedback();
+
+    if (!loginEmail.trim() || !loginPassword) {
+      setFeedbackType('error');
+      setFeedbackMessage('Preencha e-mail e senha para entrar.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await signIn(loginEmail.trim(), loginPassword);
+      if (error) {
+        setFeedbackType('error');
+        setFeedbackMessage(error.message || 'Falha ao efetuar login.');
+        return;
+      }
+      if (data?.user) {
+        router.replace('/home' as any);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignUp = async () => {
+    clearFeedback();
+
+    if (!signupUsername.trim() || !signupEmail.trim() || !signupPassword || !signupPasswordConfirm) {
+      setFeedbackType('error');
+      setFeedbackMessage('Preencha todos os campos para cadastrar.');
+      return;
+    }
+
+    if (signupPassword !== signupPasswordConfirm) {
+      setFeedbackType('error');
+      setFeedbackMessage('As senhas não coincidem.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await signUp(
+        signupEmail.trim(),
+        signupPassword,
+        signupUsername.trim()
+      );
+
+      if (error) {
+        setFeedbackType('error');
+        setFeedbackMessage(error.message || 'Falha ao cadastrar.');
+        return;
+      }
+
+      if (data?.user) {
+        if (data.session) {
+          router.replace('/home' as any);
+        } else {
+          setFeedbackType('success');
+          setFeedbackMessage('Cadastro realizado! Verifique seu e-mail para ativar a conta.');
+        }
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -73,22 +156,43 @@ export default function AuthScreen() {
             {mode === "login" ? (
               <View key="login-form" style={{ width: "100%" }}>
                 <Input
-                  label="E-MAIL OU USUÁRIO"
+                  label="E-MAIL"
                   placeholder="Ex: usuario@email.com"
-                  icon={<User color={CustomColors.grayScale} size={18} />}
+                  icon={<Mail color={CustomColors.grayScale} size={18} />}
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  value={loginEmail}
+                  onChangeText={setLoginEmail}
                 />
                 <Input
                   label="SENHA DE ACESSO"
                   placeholder="••••••••"
                   icon={<Lock color={CustomColors.grayScale} size={18} />}
                   isPassword
+                  value={loginPassword}
+                  onChangeText={setLoginPassword}
                 />
                 <TouchableOpacity>
                   <Text style={styles.forgotPassword}>Esqueceu a senha?</Text>
                 </TouchableOpacity>
-                <Button variant="gradient" containerStyle={styles.loginButton}>
+                {feedbackMessage ? (
+                  <Text
+                    style={{
+                      color: feedbackType === 'success' ? CustomColors.success : CustomColors.danger,
+                      marginTop: 14,
+                      textAlign: 'center',
+                      fontFamily: 'Inter',
+                    }}
+                  >
+                    {feedbackMessage}
+                  </Text>
+                ) : null}
+                <Button
+                  variant="gradient"
+                  containerStyle={styles.loginButton}
+                  loading={loading}
+                  onPress={handleLogin}
+                >
                   <Text style={styles.loginButtonText}>Entrar →</Text>
                 </Button>
               </View>
@@ -99,6 +203,8 @@ export default function AuthScreen() {
                   placeholder="Ex: Seu nome de usuário"
                   icon={<User color={CustomColors.grayScale} size={18} />}
                   autoCapitalize="none"
+                  value={signupUsername}
+                  onChangeText={setSignupUsername}
                 />
                 <Input
                   label="E-MAIL"
@@ -106,20 +212,43 @@ export default function AuthScreen() {
                   icon={<Mail color={CustomColors.grayScale} size={18} />}
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  value={signupEmail}
+                  onChangeText={setSignupEmail}
                 />
                 <Input
                   label="CRIAR SENHA"
                   placeholder="••••••••"
                   icon={<Lock color={CustomColors.grayScale} size={18} />}
                   isPassword
+                  value={signupPassword}
+                  onChangeText={setSignupPassword}
                 />
                 <Input
                   label="CONFIRMAR A SENHA"
                   placeholder="••••••••"
                   icon={<Lock color={CustomColors.grayScale} size={18} />}
                   isPassword
+                  value={signupPasswordConfirm}
+                  onChangeText={setSignupPasswordConfirm}
                 />
-                <Button variant="gradient" containerStyle={styles.loginButton}>
+                {feedbackMessage ? (
+                  <Text
+                    style={{
+                      color: feedbackType === 'success' ? CustomColors.success : CustomColors.danger,
+                      marginTop: 14,
+                      textAlign: 'center',
+                      fontFamily: 'Inter',
+                    }}
+                  >
+                    {feedbackMessage}
+                  </Text>
+                ) : null}
+                <Button
+                  variant="gradient"
+                  containerStyle={styles.loginButton}
+                  loading={loading}
+                  onPress={handleSignUp}
+                >
                   <Text style={styles.loginButtonText}>Cadastrar →</Text>
                 </Button>
               </View>
