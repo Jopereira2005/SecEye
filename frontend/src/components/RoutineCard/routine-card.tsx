@@ -1,9 +1,16 @@
-import React, { useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, Animated, StyleSheet } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, Pressable, StyleSheet, Platform } from "react-native";
 import { Clock, Power } from "lucide-react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withTiming, 
+  withSpring,
+  interpolateColor
+} from "react-native-reanimated";
 import { styles } from "./routine-card.styles";
 import { CustomColors } from "@/constants/theme";
+import { Button } from "../Button/button";
 
 import { IRoutine } from "@/interfaces/routine.interface";
 
@@ -12,63 +19,106 @@ export interface RoutineCardProps {
   isActive: boolean;
   isExpanded?: boolean;
   onPress?: () => void;
+  onLongPress?: () => void;
   onToggle: () => void;
 }
+
+const ALL_DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
 export function RoutineCard({
   routine,
   isActive,
   isExpanded = false,
   onPress,
+  onLongPress,
   onToggle,
 }: RoutineCardProps) {
   const timeRange = routine.hora_inicio && routine.hora_fim ? `${routine.hora_inicio} - ${routine.hora_fim}` : '';
-  const activeDays = routine.days_week;
+  
+  let displayDays: string[] = [];
+  if (routine.repeat_type === 'once') {
+    displayDays = ['Uma vez'];
+  } else if (routine.repeat_type === 'everyday') {
+    displayDays = ['Diariamente'];
+  } else if (routine.repeat_type === 'weekly' && routine.days_week) {
+    displayDays = routine.days_week.map((d: number) => ALL_DAYS[d]);
+  }
 
   const [expandedHeight, setExpandedHeight] = useState(0);
-  const heightAnim = useRef(new Animated.Value(0)).current;
+  
+  // Reanimated Shared Values
+  const activeAnim = useSharedValue(isActive ? 1 : 0);
+  const expandedAnim = useSharedValue(isExpanded ? 1 : 0);
+  const heightAnim = useSharedValue(0);
+  const scaleAnim = useSharedValue(1);
 
-  const activeAnim = useRef(new Animated.Value(isActive ? 1 : 0)).current;
-  const expandedAnim = useRef(new Animated.Value(isExpanded ? 1 : 0)).current;
+  // Loading state simulation test
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleToggleWithLoading = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      onToggle();
+    }, 1000); // Simulando 1 segundo de requisição
+  };
 
   useEffect(() => {
-    Animated.timing(activeAnim, {
-      toValue: isActive ? 1 : 0,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
+    activeAnim.value = withTiming(isActive ? 1 : 0, { duration: 300 });
   }, [isActive]);
 
   useEffect(() => {
-    Animated.timing(expandedAnim, {
-      toValue: isExpanded ? 1 : 0,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
+    expandedAnim.value = withTiming(isExpanded ? 1 : 0, { duration: 150 });
 
     if (expandedHeight > 0) {
-      Animated.timing(heightAnim, {
-        toValue: isExpanded ? expandedHeight : 0,
-        duration: 300,
-        useNativeDriver: false,
-      }).start();
+      heightAnim.value = withTiming(isExpanded ? expandedHeight : 0, { duration: 150 });
     }
   }, [isExpanded, expandedHeight]);
 
-  const badgeBackgroundColor = activeAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [CustomColors.applyOpacity(CustomColors.grayScale, 0.15), CustomColors.applyOpacity(CustomColors.primary, 0.15)]
-  });
+  const handlePressIn = () => {
+    scaleAnim.value = withSpring(0.95, { damping: 15, stiffness: 300 });
+  };
 
-  const badgeTextColor = activeAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [CustomColors.grayScale, CustomColors.primary]
-  });
+  const handlePressOut = () => {
+    scaleAnim.value = withSpring(1, { damping: 15, stiffness: 300 });
+  };
 
-  const inactiveOpacity = activeAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 0]
-  });
+  // Reanimated Styles
+  const animatedCardStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scaleAnim.value }],
+  }));
+
+  // Pre-calculate colors outside of the worklet to avoid JS thread dependency on mobile
+  const badgeBgColor = CustomColors.applyOpacity(CustomColors.primary, 0.2);
+
+  const animatedBadgeStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
+      activeAnim.value,
+      [0, 1],
+      [badgeBgColor, badgeBgColor]
+    ),
+  }));
+
+  const animatedBadgeTextStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(
+      activeAnim.value,
+      [0, 1],
+      [CustomColors.grayScale, CustomColors.primary]
+    ),
+  }));
+
+  const animatedInactivePowerStyle = useAnimatedStyle(() => ({
+    opacity: 1 - activeAnim.value,
+  }));
+
+  const animatedActivePowerStyle = useAnimatedStyle(() => ({
+    opacity: activeAnim.value,
+  }));
+
+  const animatedExpandableContainerStyle = useAnimatedStyle(() => ({
+    height: heightAnim.value,
+    opacity: expandedAnim.value,
+  }));
 
   const expandedContent = (
     <>
@@ -79,9 +129,9 @@ export function RoutineCard({
         </View>
       )}
 
-      {activeDays && activeDays.length > 0 && (
+      {displayDays && displayDays.length > 0 && (
         <View style={styles.daysContainer}>
-          {activeDays.map((day, idx) => (
+          {displayDays.map((day, idx) => (
             <View key={idx} style={styles.dayPill}>
               <Text style={styles.dayPillText}>{day}</Text>
             </View>
@@ -92,65 +142,61 @@ export function RoutineCard({
   );
 
   return (
-    <Pressable style={styles.cardContainer} onPress={onPress}>
-      <View style={styles.topRow}>
-        <View style={styles.leftContent}>
-          <Animated.View
-            style={[
-              styles.badgeContainer,
-              { backgroundColor: badgeBackgroundColor }
-            ]}
-          >
-            <Animated.Text
-              style={[
-                styles.badgeText,
-                { color: badgeTextColor }
-              ]}
-            >
-              {isActive ? "ATIVO AGORA" : "DESATIVO"}
-            </Animated.Text>
-          </Animated.View>
-
-          <Text style={styles.title}>{routine.description}</Text>
-        </View>
-
-        <Pressable onPress={onToggle}>
-          <View style={styles.powerButtonContainer}>
-            <Animated.View style={[styles.powerButton, styles.powerButtonInactive, { opacity: inactiveOpacity, position: 'absolute' }]}>
-              <Power size={30} strokeWidth={ 3 } color={CustomColors.quartenary} />
+    <Pressable 
+      onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={400}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+    >
+      <Animated.View style={[styles.cardContainer, animatedCardStyle]}>
+        <View style={styles.topRow}>
+          <View style={styles.leftContent}>
+            <Animated.View style={[styles.badgeContainer, animatedBadgeStyle]}>
+              <Animated.Text style={[styles.badgeText, animatedBadgeTextStyle]}>
+                {isActive ? "ATIVO AGORA" : "DESATIVO"}
+              </Animated.Text>
             </Animated.View>
 
-            <Animated.View style={[styles.powerButton, { opacity: activeAnim, position: 'absolute' }]}>
-              <LinearGradient
-                colors={[CustomColors.secondary, CustomColors.tertiary]}
-                start={{ x: 1, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.powerButton}
-              >
-                <Power size={30} strokeWidth={ 3 } color={CustomColors.light} />
-              </LinearGradient>
-            </Animated.View>
+            <Text style={styles.title}>{routine.description}</Text>
           </View>
-        </Pressable>
-      </View>
 
-      <View style={{ position: 'absolute', opacity: 0, zIndex: -1, width: '100%' }} pointerEvents="none">
-        <View 
-          onLayout={(e) => {
-            const h = e.nativeEvent.layout.height;
-            if (h > 0 && h !== expandedHeight) setExpandedHeight(h);
-          }} 
-          style={styles.expandedContent}
-        >
-          {expandedContent}
+          <Button
+            variant={isActive ? "gradient" : "secondary"}
+            width={48}
+            height={48}
+            borderRadius={16}
+            paddingHorizontal={0}
+            paddingVertical={0}
+            loading={isLoading}
+            onPress={handleToggleWithLoading}
+            style={{
+              backgroundColor: isActive ? undefined : CustomColors.applyOpacity(CustomColors.primary, 0.4),
+            }}
+          >
+            <Power size={30} strokeWidth={3} color={isActive ? CustomColors.light : CustomColors.quartenary} />
+          </Button>
         </View>
-      </View>
 
-      {/* Actual Animated Container */}
-      <Animated.View style={{ height: heightAnim, overflow: 'hidden', opacity: expandedAnim }}>
-        <View style={styles.expandedContent}>
-          {expandedContent}
+        {/* Dummy view for measuring height */}
+        <View style={{ position: 'absolute', opacity: 0, zIndex: -1, width: '100%', pointerEvents: 'none' }}>
+          <View 
+            onLayout={(e) => {
+              const h = e.nativeEvent.layout.height;
+              if (h > 0 && h !== expandedHeight) setExpandedHeight(h);
+            }} 
+            style={styles.expandedContent}
+          >
+            {expandedContent}
+          </View>
         </View>
+
+        {/* Actual Animated Container */}
+        <Animated.View style={[{ overflow: 'hidden' }, animatedExpandableContainerStyle]}>
+          <View style={styles.expandedContent}>
+            {expandedContent}
+          </View>
+        </Animated.View>
       </Animated.View>
     </Pressable>
   );

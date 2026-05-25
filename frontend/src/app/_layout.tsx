@@ -4,6 +4,7 @@ import { useFonts, Inter_400Regular } from '@expo-google-fonts/inter';
 import { DaysOne_400Regular } from '@expo-google-fonts/days-one';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -24,7 +25,7 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="light" />
       {/* 
         ========================================================
@@ -44,6 +45,6 @@ export default function RootLayout() {
         </AuthProvider>
         ========================================================
       */}
-    </>
+    </GestureHandlerRootView>
   );
 }

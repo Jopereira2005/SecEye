@@ -6,6 +6,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { styles } from './header.styles';
 import { CustomColors } from '@/constants/theme';
+import { Button } from '../Button/button';
 
 export function Header() {
   const insets = useSafeAreaInsets();
@@ -21,10 +22,16 @@ export function Header() {
         />
         <Text style={styles.logoText}>Sec<Text style={styles.logoHighlight}>Eye</Text></Text>
       </TouchableOpacity>
-
-      <TouchableOpacity style={styles.notificationButton} activeOpacity={0.8} onPress={() => router.push('/auth')}>
+      
+      <Button 
+        variant="ghost" 
+        style={styles.notificationButton} 
+        paddingHorizontal={0}
+        paddingVertical={0}
+        onPress={() => router.push('/auth')}
+      >
         <Bell color={CustomColors.light} size={20} />
-      </TouchableOpacity>
+      </Button>
     </View>
   );
 }

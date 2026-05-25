@@ -14,7 +14,7 @@ export const styles = StyleSheet.create({
 
   contentContainer: {
     padding: Spacing.lg,
-    paddingBottom: moderateScale(100), // Space for floating button
+    paddingBottom: moderateScale(100),
   },
 
   header: {

@@ -1,10 +1,13 @@
 import React from 'react';
-import { TouchableOpacity, TouchableOpacityProps, ActivityIndicator, View, ViewStyle, StyleSheet, ColorValue } from 'react-native';
+import { Pressable, PressableProps, ActivityIndicator, View, ViewStyle, StyleSheet, ColorValue } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { CustomColors } from '@/constants/theme';
 import { styles } from './button.styles';
 
-export interface ButtonProps extends TouchableOpacityProps {
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+export interface ButtonProps extends Omit<PressableProps, 'style'> {
   loading?: boolean;
   size?: 'small' | 'medium' | 'large';
   width?: number | string;
@@ -12,11 +15,12 @@ export interface ButtonProps extends TouchableOpacityProps {
   paddingVertical?: number;
   paddingHorizontal?: number;
   borderRadius?: number;
-  variant?: 'primary' | 'secondary' | 'outline' | 'gradient';
+  variant?: 'primary' | 'secondary' | 'outline' | 'gradient' | 'danger' | 'success' | 'ghost' | 'glass';
   gradientColors?: readonly [ColorValue, ColorValue, ...ColorValue[]];
   gradientStart?: { x: number; y: number };
   gradientEnd?: { x: number; y: number };
   containerStyle?: ViewStyle;
+  style?: ViewStyle;
   children: React.ReactNode;
 }
 
@@ -66,10 +70,28 @@ export function Button({
     ? borderRadius 
     : (styles[size] as ViewStyle).borderRadius;
 
+  // Animation for scale on press
+  const scale = useSharedValue(1);
+
+  const handlePressIn = (e: any) => {
+    scale.value = withTiming(0.95, { duration: 100 });
+    if (rest.onPressIn) rest.onPressIn(e);
+  };
+
+  const handlePressOut = (e: any) => {
+    scale.value = withTiming(1, { duration: 150 });
+    if (rest.onPressOut) rest.onPressOut(e);
+  };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
   return (
-    <TouchableOpacity
-      activeOpacity={0.8}
+    <AnimatedPressable
       disabled={isDisabled}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
       style={[
         styles.buttonBase,
         styles[size],
@@ -79,6 +101,7 @@ export function Button({
         customDimensions,
         containerStyle,
         style,
+        animatedStyle,
       ]}
       {...rest}
     >
@@ -91,7 +114,7 @@ export function Button({
         />
       ) : null}
       {content}
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
-};
+}
 

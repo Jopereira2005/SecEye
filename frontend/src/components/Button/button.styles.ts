@@ -46,6 +46,22 @@ export const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     ...Shadows.primaryButton,
   },
+  danger: {
+    backgroundColor: CustomColors.danger,
+    boxShadow: `0px 4px 12px ${CustomColors.applyOpacity(CustomColors.danger, 0.25)}`,
+  },
+  success: {
+    backgroundColor: CustomColors.success,
+    boxShadow: `0px 4px 12px ${CustomColors.applyOpacity(CustomColors.success, 0.25)}`,
+  },
+  ghost: {
+    backgroundColor: 'transparent',
+  },
+  glass: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
   // Estados
   disabled: {
     opacity: 0.6,
