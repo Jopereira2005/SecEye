@@ -121,7 +121,7 @@ export default function RoutineScreen() {
         <View style={styles.header}>
           <Text style={styles.pageTitle}>Rotinas</Text>
           <Text style={styles.pageSubtitle}>
-            Automatize a segurança da sua residência .
+            Automatize a segurança da sua residência através de rotinas personalizadas.
           </Text>
         </View>
 
