@@ -96,7 +96,7 @@ export default function OccurrencesScreen() {
 
       fetchDeepLink();
     }
-  }, [params.openId]);
+  }, [params.openId, params._t]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);

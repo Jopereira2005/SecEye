@@ -104,7 +104,7 @@ export default function Home() {
               onPress={(occ) => {
                 router.navigate({
                   pathname: '/(tabs)/occurrences',
-                  params: { openId: occ.id }
+                  params: { openId: occ.id, _t: Date.now() }
                 } as any);
               }}
             />
