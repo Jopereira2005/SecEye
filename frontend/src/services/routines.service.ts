@@ -57,6 +57,38 @@ export async function createRoutine(payload: CreateRoutinePayload): Promise<IRou
   }
 }
 
+export async function getActiveRoutines(): Promise<IRoutine[]> {
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) throw new Error('Usuário não autenticado');
+
+    const now = new Date();
+    const currentTime = now.toTimeString().slice(0, 5); // "HH:MM"
+    const today = now.toISOString().split('T')[0];      // "YYYY-MM-DD"
+    const dayOfWeek = now.getDay();                     // 0 = domingo
+
+    const { data, error } = await supabase
+      .from('routines')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .lte('hora_inicio', currentTime)
+      .gte('hora_fim', currentTime);
+
+    if (error) throw error;
+
+    return (data as IRoutine[]).filter(routine => {
+      if (routine.repeat_type === 'everyday') return true;
+      if (routine.repeat_type === 'weekly') return routine.days_week.includes(dayOfWeek);
+      if (routine.repeat_type === 'once') return routine.specific_date === today;
+      return false;
+    });
+  } catch (err) {
+    console.error('getActiveRoutines:', err);
+    throw err;
+  }
+}
+
 export async function deleteRoutine(id: number): Promise<void> {
   try {
     const { error } = await supabase
