@@ -16,15 +16,15 @@ type AuthContextValue = {
   isLoading: boolean;
   error: Error | AuthError | PostgrestError | null;
   isAuthenticated: boolean;
-  signIn: (email: string, password: string) => Promise<SignInResult>;
+  signIn: (email: string, password: string) => SignInResult;
   signUp: (
     email: string,
     password: string,
     username: string,
     firstName?: string,
     lastName?: string
-  ) => Promise<SignUpResult>;
-  signOut: () => Promise<SignOutResult>;
+  ) => SignUpResult;
+  signOut: () => SignOutResult;
   refreshProfile: () => Promise<IUser | null>;
 };
 
