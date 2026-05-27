@@ -137,3 +137,7 @@ export const styles = StyleSheet.create({
     color: '#F3FFFB',
   },
 });
+
+export default function StylesRoute() {
+  return null;
+}
