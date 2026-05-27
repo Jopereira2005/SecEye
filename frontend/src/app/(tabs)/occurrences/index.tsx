@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from "react";
-import { View, Text, FlatList, RefreshControl, ScrollView, TouchableOpacity, Alert } from "react-native";
+import React, { useState, useCallback, useEffect } from "react";
+import { View, Text, FlatList, RefreshControl, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
+import { useLocalSearchParams } from "expo-router";
 import { OccurrenceCard } from "@/components/OccurrenceCard/occurrence-card";
 import { OccurrenceModal } from "@/components/OccurrenceModal/occurrence-modal";
 import { OccurrenceFilterModal, IFilterState, INITIAL_FILTER_STATE } from "@/components/OccurrenceFilterModal/occurrence-filter-modal";
@@ -73,6 +74,29 @@ export default function OccurrencesScreen() {
 
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isFetchingDeepLink, setIsFetchingDeepLink] = useState(false);
+  
+  const params = useLocalSearchParams();
+
+  // Escuta os parâmetros da rota para abrir o modal via deep link ou navegação
+  useEffect(() => {
+    if (params.openId) {
+      const fetchDeepLink = async () => {
+        setIsFetchingDeepLink(true);
+        // Simula o delay de requisição para a API real
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        const found = ALL_OCCURRENCES.find(o => o.id === params.openId);
+        if (found) {
+          setSelectedOccurrence(found);
+          setIsModalVisible(true);
+        }
+        setIsFetchingDeepLink(false);
+      };
+
+      fetchDeepLink();
+    }
+  }, [params.openId]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -276,6 +300,14 @@ export default function OccurrencesScreen() {
           )}
         />
       </View>
+
+      {/* Overlay de Loading do Deep Link */}
+      {isFetchingDeepLink && (
+        <View style={styles.deepLinkLoadingOverlay}>
+          <ActivityIndicator size="large" color={CustomColors.primary} />
+          <Text style={styles.deepLinkLoadingText}>Buscando detalhes...</Text>
+        </View>
+      )}
 
       {/* Floating Action Bar para Deleção */}
       {isSelectionMode && (

@@ -95,6 +95,23 @@ export const styles = StyleSheet.create({
     marginTop: Spacing.md,
   },
 
+  // Loading Overlay (Deep Link)
+  deepLinkLoadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(17, 19, 24, 0.85)', // Fundo escuro semitransparente
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+  },
+  
+  deepLinkLoadingText: {
+    fontFamily: CustomFonts.inter,
+    fontSize: moderateScale(14),
+    color: CustomColors.primary,
+    marginTop: Spacing.md,
+    fontWeight: 'bold',
+  },
+
   // Floating Action Bar para seleção
   floatingActionBar: {
     position: 'absolute',

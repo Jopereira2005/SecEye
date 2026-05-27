@@ -27,7 +27,7 @@ const formatDate = (isoString: string) => {
   }
 };
 
-export type OccurrenceCardSize = 'small' | 'medium' | 'large';
+export type OccurrenceCardSize = 'small' | 'medium' | 'large' | 'recent';
 
 export interface OccurrenceCardProps {
   occurrence: IOcurrence;
@@ -86,7 +86,7 @@ export function OccurrenceCard({
       onPressOut={handlePressOut}
     >
       <Animated.View style={[
-        styles.container, 
+        size !== 'recent' ? styles.container : styles.containerRecent, 
         size === 'large' && styles.containerLarge,
         size === 'medium' && styles.containerMedium,
         size === 'small' && styles.containerSmall,
@@ -94,108 +94,124 @@ export function OccurrenceCard({
         animatedStyle
       ]}>
         
-        {/* Imagem do Evento */}
-        <View style={[
-          styles.imageContainer,
-          size === 'large' && styles.imageLarge,
-          size === 'medium' && styles.imageMedium,
-          size === 'small' && styles.imageSmall,
-        ]}>
-          {hasImage ? (
-            <Image 
-              source={{ uri: occurrence.event_image! }}
-              style={styles.image}
-              contentFit="cover"
-              transition={200}
-            />
-          ) : (
-            <View style={styles.imagePlaceholder}>
-              <Video color={CustomColors.grayScale} size={32} opacity={0.5} />
+        {size === 'recent' ? (
+          <>
+            <View style={styles.iconContainerRecent}>
+              <SeverityIcon size={24} color={currentSeverity.color} />
             </View>
-          )}
-
-          {/* Badge de Severidade na imagem (Large / Small) */}
-          {(size === 'large' || size === 'small') && (
-            <View style={[styles.severityBadge, { backgroundColor: CustomColors.applyOpacity(currentSeverity.color, 0.2) }]}>
-              <SeverityIcon size={12} color={currentSeverity.color} />
-              <Text style={[styles.severityText, { color: currentSeverity.color }]}>
-                {currentSeverity.label}
+            <View style={styles.contentRecent}>
+              <Text style={styles.titleRecent}>Movimento Detectado</Text>
+              <Text style={styles.subtitleRecent}>
+                {camera?.name?.toUpperCase() || 'DESCONHECIDO'} • {formatTime(occurrence.timestamp)}
               </Text>
             </View>
-          )}
-        </View>
-
-        {/* Informações */}
-        <View style={[
-          styles.contentContainer,
-          size === 'large' && { paddingTop: 16 },
-          size === 'medium' && styles.contentMedium,
-          size === 'small' && styles.contentSmall,
-        ]}>
-          {size === 'medium' ? (
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-              {/* Lado esquerdo: Textos */}
-              <View style={{ flex: 1, gap: 4 }}>
-                <View style={styles.cameraNameContainer}>
-                  <Video size={16} color={CustomColors.grayScale} />
-                  <Text style={styles.cameraName} numberOfLines={1} ellipsizeMode="tail">
-                    {camera?.name || 'Câmera Desconhecida'}
-                  </Text>
+          </>
+        ) : (
+          <>
+            {/* Imagem do Evento */}
+            <View style={[
+              styles.imageContainer,
+              size === 'large' && styles.imageLarge,
+              size === 'medium' && styles.imageMedium,
+              size === 'small' && styles.imageSmall,
+            ]}>
+              {hasImage ? (
+                <Image 
+                  source={{ uri: occurrence.event_image! }}
+                  style={styles.image}
+                  contentFit="cover"
+                  transition={200}
+                />
+              ) : (
+                <View style={styles.imagePlaceholder}>
+                  <Video color={CustomColors.grayScale} size={32} opacity={0.5} />
                 </View>
-                <View style={styles.timestampContainer}>
-                  <Clock size={14} color={CustomColors.grayScale} />
-                  <Text style={styles.timestampText}>
-                    {`${formatDate(occurrence.timestamp)} - ${formatTime(occurrence.timestamp)}`}
-                  </Text>
-                </View>
-              </View>
+              )}
 
-              {/* Lado direito: Badge de Risco em Flex (Sem absolute) */}
-              <View style={{
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingVertical: 6,
-                paddingHorizontal: 8,
-                borderRadius: 8,
-                backgroundColor: CustomColors.applyOpacity(currentSeverity.color, 0.2)
-              }}>
-                <SeverityIcon size={20} color={currentSeverity.color} />
-                <Text style={[styles.severityText, { color: currentSeverity.color, fontSize: 9, marginTop: 4, textAlign: 'center' }]}>
-                  {currentSeverity.label}
-                </Text>
-              </View>
-            </View>
-          ) : (
-            <>
-              <View style={styles.headerRow}>
-                <View style={styles.cameraNameContainer}>
-                  <Video size={16} color={CustomColors.grayScale} />
-                  <Text style={styles.cameraName} numberOfLines={1} ellipsizeMode="tail">
-                    {camera?.name || 'Câmera Desconhecida'}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.timestampContainer}>
-                <Clock size={14} color={CustomColors.grayScale} />
-                <Text style={styles.timestampText}>
-                  {formatTime(occurrence.timestamp)}
-                </Text>
-              </View>
-
-              {size === 'large' && (
-                <View style={styles.footerRow}>
-                  <Text style={styles.footerText}>
-                    Data: {formatDate(occurrence.timestamp)}
-                  </Text>
-                  <Text style={styles.footerText}>
-                    ID: #{occurrence.id.slice(0, 6)}
+              {/* Badge de Severidade na imagem (Large / Small) */}
+              {(size === 'large' || size === 'small') && (
+                <View style={[styles.severityBadge, { backgroundColor: CustomColors.applyOpacity(currentSeverity.color, 0.2) }]}>
+                  <SeverityIcon size={12} color={currentSeverity.color} />
+                  <Text style={[styles.severityText, { color: currentSeverity.color }]}>
+                    {currentSeverity.label}
                   </Text>
                 </View>
               )}
-            </>
-          )}
-        </View>
+            </View>
+
+            {/* Informações */}
+            <View style={[
+              styles.contentContainer,
+              size === 'large' && { paddingTop: 16 },
+              size === 'medium' && styles.contentMedium,
+              size === 'small' && styles.contentSmall,
+            ]}>
+              {size === 'medium' ? (
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                  {/* Lado esquerdo: Textos */}
+                  <View style={{ flex: 1, gap: 4 }}>
+                    <View style={styles.cameraNameContainer}>
+                      <Video size={16} color={CustomColors.grayScale} />
+                      <Text style={styles.cameraName} numberOfLines={1} ellipsizeMode="tail">
+                        {camera?.name || 'Câmera Desconhecida'}
+                      </Text>
+                    </View>
+                    <View style={styles.timestampContainer}>
+                      <Clock size={14} color={CustomColors.grayScale} />
+                      <Text style={styles.timestampText}>
+                        {`${formatDate(occurrence.timestamp)} - ${formatTime(occurrence.timestamp)}`}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Lado direito: Badge de Risco em Flex (Sem absolute) */}
+                  <View style={{
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingVertical: 6,
+                    paddingHorizontal: 8,
+                    borderRadius: 8,
+                    backgroundColor: CustomColors.applyOpacity(currentSeverity.color, 0.2)
+                  }}>
+                    <SeverityIcon size={20} color={currentSeverity.color} />
+                    <Text style={[styles.severityText, { color: currentSeverity.color, fontSize: 9, marginTop: 4, textAlign: 'center' }]}>
+                      {currentSeverity.label}
+                    </Text>
+                  </View>
+                </View>
+              ) : (
+                <>
+                  <View style={styles.headerRow}>
+                    <View style={styles.cameraNameContainer}>
+                      <Video size={16} color={CustomColors.grayScale} />
+                      <Text style={styles.cameraName} numberOfLines={1} ellipsizeMode="tail">
+                        {camera?.name || 'Câmera Desconhecida'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.timestampContainer}>
+                    <Clock size={14} color={CustomColors.grayScale} />
+                    <Text style={styles.timestampText}>
+                      {formatTime(occurrence.timestamp)}
+                    </Text>
+                  </View>
+
+                  {size === 'large' && (
+                    <View style={styles.footerRow}>
+                      <Text style={styles.footerText}>
+                        Data: {formatDate(occurrence.timestamp)}
+                      </Text>
+                      <Text style={styles.footerText}>
+                        ID: #{occurrence.id.slice(0, 6)}
+                      </Text>
+                    </View>
+                  )}
+                </>
+              )}
+            </View>
+          </>
+        )}
 
         {/* Overlay de Seleção */}
         {selected && (

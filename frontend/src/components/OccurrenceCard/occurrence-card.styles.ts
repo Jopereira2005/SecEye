@@ -164,6 +164,51 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
 
+  // Recent: Minimalist card for home feed
+  containerRecent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: CustomColors.dark,
+    borderColor: CustomColors.applyOpacity(CustomColors.quartenary, 0.2),
+    borderWidth: 1,
+    borderRadius: moderateScale(16),
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+    width: '100%',
+    ...Shadows.card,
+  },
+  
+  iconContainerRecent: {
+    width: moderateScale(48),
+    height: moderateScale(48),
+    borderRadius: moderateScale(12),
+    backgroundColor: CustomColors.grayScaleDark,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+  },
+  
+  contentRecent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  
+  titleRecent: {
+    fontSize: moderateScale(16),
+    fontWeight: 'bold',
+    color: CustomColors.light,
+    marginBottom: Spacing.xs,
+    fontFamily: CustomFonts.inter,
+  },
+  
+  subtitleRecent: {
+    fontSize: moderateScale(12),
+    color: CustomColors.grayScale,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    fontFamily: CustomFonts.inter,
+  },
+
   // Seleção
   selectedOverlay: {
     ...StyleSheet.absoluteFillObject,
