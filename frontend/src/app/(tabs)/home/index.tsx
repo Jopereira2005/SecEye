@@ -2,12 +2,37 @@ import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Shield, TriangleAlert, Clock, Scan } from 'lucide-react-native';
 import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
 
 import { Button } from '@/components/Button/button';
+import { OccurrenceCard } from '@/components/OccurrenceCard/occurrence-card';
 import { styles } from './_home.styles';
 import { CustomColors, Spacing } from '@/constants/theme';
 
+const MOCK_OCCURRENCES: any[] = [
+  {
+    id: 'occ-1000',
+    timestamp: new Date().toISOString(),
+    event_image: null,
+    camera: { name: 'Garagem Principal', severity: 'high' }
+  },
+  {
+    id: 'occ-1001',
+    timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+    event_image: null,
+    camera: { name: 'Jardim Fundos', severity: 'medium' }
+  },
+  {
+    id: 'occ-1002',
+    timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
+    event_image: null,
+    camera: { name: 'Portão Frontal', severity: 'low' }
+  }
+];
+
 export default function Home() {
+  const router = useRouter();
+  
   return (
     <View style={styles.container}>
       <ScrollView 
@@ -71,16 +96,18 @@ export default function Home() {
         <View style={styles.recentActivitySection}>
           <Text style={styles.sectionTitle}>Atividade Recente</Text>
 
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((item, index) => (
-            <TouchableOpacity key={index} style={styles.activityItem} activeOpacity={0.7}>
-              <View style={styles.activityIconContainer}>
-                <Scan color={CustomColors.tertiary} size={24} />
-              </View>
-              <View style={styles.activityTextContainer}>
-                <Text style={styles.activityTitle}>Movimento Detectado</Text>
-                <Text style={styles.activitySubtitle}>GARAGEM • HÁ 5 MIN</Text>
-              </View>
-            </TouchableOpacity>
+          {MOCK_OCCURRENCES.map((item) => (
+            <OccurrenceCard 
+              key={item.id} 
+              occurrence={item} 
+              size="recent" 
+              onPress={(occ) => {
+                router.navigate({
+                  pathname: '/(tabs)/occurrences',
+                  params: { openId: occ.id }
+                } as any);
+              }}
+            />
           ))}
         </View>
       </ScrollView>

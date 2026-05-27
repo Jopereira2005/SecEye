@@ -28,8 +28,17 @@ export function Navbar({ state, descriptors, navigation }: BottomTabBarProps) {
         const color = isActive ? CustomColors.primary : CustomColors.grayScale;
 
         const onPress = () => {
-          if (!isActive) {
-            router.push(`/(tabs)/${tab.id}` as any);
+          const targetRoute = state.routes.find((r) => r.name === tab.route || r.name === tab.id);
+          
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: targetRoute?.key || '',
+            canPreventDefault: true,
+          });
+
+          if (!isActive && !event.defaultPrevented) {
+            // Volta a usar o Expo Router, mas com .navigate() em vez de .push()
+            router.navigate(`/(tabs)/${tab.id}` as any);
           }
         };
 
