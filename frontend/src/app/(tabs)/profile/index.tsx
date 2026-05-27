@@ -15,12 +15,12 @@ import { useRouter } from 'expo-router';
 import { styles } from './_profile.styles';
 import { Input } from '@/components/Input/input';
 import { Button } from '@/components/Button/button';
-import { getProfile } from '@/services/user.service';
+import { useAuth } from '@/contexts/auth.context';
 import { updateProfile } from '@/services/user.service';
-import { signOut } from '@/services/auth.service';
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { profile, signOut } = useAuth();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
@@ -30,28 +30,16 @@ export default function ProfileScreen() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
 
-  const fetchProfile = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await getProfile();
-      if (error) {
-        setFeedback({ type: 'error', message: error.message || 'Erro ao carregar perfil.' });
-        return;
-      }
-      if (data) {
-        setFirstName(data.first_name || '');
-        setLastName(data.last_name || '');
-        setUsername(data.username || '');
-        setEmail(data.email || '');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchProfile();
-  }, []);
+    if (!profile) {
+      return;
+    }
+
+    setFirstName(profile.first_name || '');
+    setLastName(profile.last_name || '');
+    setUsername(profile.username || '');
+    setEmail(profile.email || '');
+  }, [profile]);
 
   const handleSave = async () => {
     Keyboard.dismiss();

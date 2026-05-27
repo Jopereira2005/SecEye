@@ -6,6 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
+import { AuthProvider } from '@/contexts/auth.context';
 
 // Silencia o warning de Strict Mode falso-positivo do Reanimated 3+
 configureReanimatedLogger({
@@ -34,24 +35,9 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="light" />
-      {/* 
-        ========================================================
-        PROVIDERS GLOBAIS ENTRARIAM AQUI:
-        <AuthProvider>
-          <ThemeProvider>
-            <ReduxProvider store={store}>
-        ========================================================
-      */}
-      
-      <Slot />
-
-      {/* 
-        ========================================================
-            </ReduxProvider>
-          </ThemeProvider>
-        </AuthProvider>
-        ========================================================
-      */}
+      <AuthProvider>
+        <Slot />
+      </AuthProvider>
     </GestureHandlerRootView>
   );
 }

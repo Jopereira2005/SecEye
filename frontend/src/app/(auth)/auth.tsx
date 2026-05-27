@@ -22,12 +22,13 @@ import { SocialAuth } from "@/components/SocialAuth/social-auth";
 import { AuthSwitch } from "@/components/AuthSwitch/auth-switch";
 import { styles } from "./_auth.styles";
 import { CustomColors } from "@/constants/theme";
-import { signIn, signUp } from "@/services/auth.service";
+import { useAuth } from "@/contexts/auth.context";
 
 // LayoutAnimation is natively supported in the New Architecture, no experimental flag needed.
 
 export default function AuthScreen() {
   const router = useRouter();
+  const { signIn, signUp } = useAuth();
   const [mode, setMode] = useState<"login" | "sign-up">("login");
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
