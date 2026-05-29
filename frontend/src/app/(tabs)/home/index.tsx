@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Pressable } from 'react-native';
 import { Shield, TriangleAlert, Clock, Scan } from 'lucide-react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 
@@ -8,6 +9,9 @@ import { Button } from '@/components/Button/button';
 import { OccurrenceCard } from '@/components/OccurrenceCard/occurrence-card';
 import { styles } from './_home.styles';
 import { CustomColors, Spacing } from '@/constants/theme';
+import { useRoutines } from '@/hooks/use-routines';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 const MOCK_OCCURRENCES: any[] = [
   {
@@ -32,6 +36,16 @@ const MOCK_OCCURRENCES: any[] = [
 
 export default function Home() {
   const router = useRouter();
+  const { isSystemActive, activeRoutines } = useRoutines();
+
+  const routineScale = useSharedValue(1);
+  const routineAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: routineScale.value }]
+  }));
+
+  const routineText = activeRoutines.length === 0 
+    ? 'Nenhuma' 
+    : activeRoutines.map(r => r.description).filter(Boolean).join(', ');
   
   return (
     <View style={styles.container}>
@@ -50,22 +64,26 @@ export default function Home() {
               Olá, <Text style={styles.nameText}>MR PAXE</Text>
             </Text>
             <Text style={styles.statusText}>
-              O sistema está operando em modo de espera.
+              {isSystemActive 
+                ? 'O sistema está monitorando ativamente.' 
+                : 'O sistema está operando em modo de espera.'}
             </Text>
           </View>
         </View>
 
         <Button 
-          variant="gradient"
+          variant={isSystemActive ? "gradient" : "secondary"}
           size="large"
           containerStyle={{ marginBottom: Spacing.lg }}
+          disabled={false} // Mantém sem efeito de opacidade de disabled
+          // Sem onPress, serve apenas como display visual, mas mantém o estilo original de botão
         >
           <View style={styles.shieldIconContainer}>
             <Shield color={CustomColors.light} size={32} fill={CustomColors.light} />
           </View>
-          <Text style={styles.mainCardTitle}>INICIAR SISTEMA</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>PRONTO PARA ARMAR</Text>
+          <Text style={styles.mainCardTitle}>{isSystemActive ? 'SISTEMA ATIVO' : 'SISTEMA INATIVO'}</Text>
+          <View style={[styles.badge, { backgroundColor: isSystemActive ? CustomColors.applyOpacity(CustomColors.light, 0.2) : CustomColors.applyOpacity(CustomColors.grayScale, 0.2) }]}>
+            <Text style={styles.badgeText}>{isSystemActive ? 'MONITORANDO' : 'EM ESPERA'}</Text>
           </View>
         </Button>
 
@@ -82,15 +100,20 @@ export default function Home() {
 
           </View>
 
-          <View style={[styles.statCard]}>
+          <AnimatedPressable 
+            style={[styles.statCard, routineAnimatedStyle]}
+            onPressIn={() => routineScale.value = withTiming(0.95, { duration: 100 })}
+            onPressOut={() => routineScale.value = withTiming(1, { duration: 150 })}
+            onPress={() => router.navigate('/(tabs)/routine')}
+          >
             <View style={styles.statHeader}>
               <Clock color={CustomColors.primary} size={24} />
             </View>
             <View style={styles.statTextContainer}>
-              <Text style={styles.statRoutine}>Noite Segura</Text>
+              <Text style={styles.statRoutine} numberOfLines={2}>{routineText}</Text>
               <Text style={styles.statSubtitle}>ROTINA ATUAL</Text>
             </View>
-          </View>
+          </AnimatedPressable>
         </View>
 
         <View style={styles.recentActivitySection}>

@@ -58,6 +58,27 @@ export const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: moderateScale(16),
   },
+
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: CustomColors.dark,
+  },
+
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: moderateScale(60),
+  },
+
+  emptyText: {
+    fontSize: moderateScale(16),
+    fontFamily: CustomFonts.inter,
+    color: CustomColors.grayScale,
+    textAlign: "center",
+  },
 });
 
 export default function StylesRoute() {

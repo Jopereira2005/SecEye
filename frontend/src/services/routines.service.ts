@@ -19,7 +19,6 @@ export async function getRoutines(): Promise<IRoutine[]> {
       .from('routines')
       .select('*')
       .eq('user_id', user.id)
-      .eq('is_active', true)
       .order('hora_inicio', { ascending: true });
 
     if (error) throw error;
@@ -37,7 +36,7 @@ export async function createRoutine(payload: CreateRoutinePayload): Promise<IRou
 
     const normalizedPayload = {
       ...payload,
-      days_week: payload.repeat_type !== 'weekly' ? [] : payload.days_week,
+      days_week: payload.repeat_type === 'everyday' ? [0, 1, 2, 3, 4, 5, 6] : (payload.repeat_type === 'weekly' ? payload.days_week : []),
       specific_date: payload.repeat_type !== 'once' ? null : payload.specific_date,
       user_id: user.id,
       is_active: true,
@@ -63,21 +62,44 @@ export async function getActiveRoutines(): Promise<IRoutine[]> {
     if (authError || !user) throw new Error('Usuário não autenticado');
 
     const now = new Date();
-    const currentTime = now.toTimeString().slice(0, 5); // "HH:MM"
-    const today = now.toISOString().split('T')[0];      // "YYYY-MM-DD"
-    const dayOfWeek = now.getDay();                     // 0 = domingo
+    
+    // Obter hora local (HH:MM)
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const currentTime = `${hours}:${minutes}`;
+    
+    // Obter data local (YYYY-MM-DD)
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const today = `${year}-${month}-${day}`;
+    
+    const dayOfWeek = now.getDay();
 
     const { data, error } = await supabase
       .from('routines')
       .select('*')
       .eq('user_id', user.id)
-      .eq('is_active', true)
-      .lte('hora_inicio', currentTime)
-      .gte('hora_fim', currentTime);
+      .eq('is_active', true);
 
     if (error) throw error;
 
     return (data as IRoutine[]).filter(routine => {
+      // Limpar os segundos (ex: "08:00:00" -> "08:00") para comparação
+      const inicio = routine.hora_inicio.slice(0, 5);
+      const fim = routine.hora_fim.slice(0, 5);
+      
+      let isTimeValid = false;
+      if (inicio <= fim) {
+        // Rotina no mesmo dia (ex: 08:00 às 18:00)
+        isTimeValid = currentTime >= inicio && currentTime <= fim;
+      } else {
+        // Rotina cruza a meia-noite (ex: 22:00 às 06:00)
+        isTimeValid = currentTime >= inicio || currentTime <= fim;
+      }
+
+      if (!isTimeValid) return false;
+
       if (routine.repeat_type === 'everyday') return true;
       if (routine.repeat_type === 'weekly') return routine.days_week.includes(dayOfWeek);
       if (routine.repeat_type === 'once') return routine.specific_date === today;
@@ -93,12 +115,29 @@ export async function deleteRoutine(id: number): Promise<void> {
   try {
     const { error } = await supabase
       .from('routines')
-      .update({ is_active: false })
+      .delete()
       .eq('id', id);
 
     if (error) throw error;
   } catch (err) {
     console.error('deleteRoutine:', err);
+    throw err;
+  }
+}
+
+export async function updateRoutine(id: number, payload: Partial<IRoutine>): Promise<IRoutine> {
+  try {
+    const { data, error } = await supabase
+      .from('routines')
+      .update(payload)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as IRoutine;
+  } catch (err) {
+    console.error('updateRoutine:', err);
     throw err;
   }
 }

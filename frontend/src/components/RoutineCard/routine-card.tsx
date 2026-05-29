@@ -33,7 +33,14 @@ export function RoutineCard({
   onLongPress,
   onToggle,
 }: RoutineCardProps) {
-  const timeRange = routine.hora_inicio && routine.hora_fim ? `${routine.hora_inicio} - ${routine.hora_fim}` : '';
+  const formatTime = (timeStr?: string) => {
+    if (!timeStr) return '';
+    return timeStr.slice(0, 5);
+  };
+
+  const timeRange = routine.hora_inicio && routine.hora_fim 
+    ? `${formatTime(routine.hora_inicio)} - ${formatTime(routine.hora_fim)}` 
+    : '';
   
   let displayDays: string[] = [];
   if (routine.repeat_type === 'once') {
