@@ -2,9 +2,63 @@
 import threading
 import time
 import traceback
+from datetime import datetime, timedelta
 
 from . import config, state
 from .utils import agora_utc
+
+
+def _rotina_once_expirada(rotina, now=None):
+    """True se for uma rotina 'once' ativa cujo horário de término já passou."""
+    if rotina.get('repeat_type') != 'once':
+        return False
+    if not rotina.get('is_active', True):
+        return False
+
+    specific_date = str(rotina.get('specific_date', ''))[:10]
+    hora_fim      = str(rotina.get('hora_fim', ''))[:5]
+    hora_inicio   = str(rotina.get('hora_inicio', ''))[:5]
+
+    if not specific_date or not hora_fim:
+        return False
+
+    try:
+        end_date = datetime.strptime(specific_date, '%Y-%m-%d').date()
+        end_time = datetime.strptime(hora_fim, '%H:%M').time()
+    except ValueError:
+        return False
+
+    end_dt = datetime.combine(end_date, end_time)
+    # Intervalo que cruza meia-noite: fim é no dia seguinte
+    if hora_inicio and hora_inicio > hora_fim:
+        end_dt += timedelta(days=1)
+
+    return (now or datetime.now()) > end_dt
+
+
+def _desativar_rotinas_once_expiradas(routines):
+    """Desativa em background rotinas 'once' que já terminaram (is_active=False)."""
+    now = datetime.now()
+    expiradas = [r for r in routines if _rotina_once_expirada(r, now)]
+    if not expiradas:
+        return
+
+    def _update():
+        for r in expiradas:
+            rid = r.get('id')
+            if not rid:
+                continue
+            try:
+                state.supabase.table("routines").update(
+                    {"is_active": False}
+                ).eq("id", rid).execute()
+                r['is_active'] = False
+                nome = r.get('name') or rid
+                print(f">> [ROTINA] 'Once' finalizada e desativada: {nome}")
+            except Exception as e:
+                print(f">>   [WARN] Erro ao desativar rotina {rid}: {e}")
+
+    threading.Thread(target=_update, daemon=True).start()
 
 
 def _normalizar_camera(cam, routines_by_user=None):
@@ -46,6 +100,7 @@ def _fetch_routines_by_user():
     """Retorna dict {user_id: [routines...]} com todas as rotinas ativas."""
     try:
         res = state.supabase.table("routines").select("*").execute()
+        _desativar_rotinas_once_expiradas(res.data)
         by_user = {}
         for r in res.data:
             uid = r.get('user_id')
@@ -160,6 +215,7 @@ def carregar_camera_completa(camera_id):
         uid = cam.get('user_id')
         if uid:
             r_res = state.supabase.table("routines").select("*").eq("user_id", uid).execute()
+            _desativar_rotinas_once_expiradas(r_res.data)
             routines_by_user[uid] = r_res.data
 
         return _normalizar_camera(cam, routines_by_user)
