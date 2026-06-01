@@ -23,6 +23,7 @@ import { AuthSwitch } from "@/components/AuthSwitch/auth-switch";
 import { styles } from "./_auth.styles";
 import { CustomColors } from "@/constants/theme";
 import { useAuth } from "@/contexts/auth.context";
+import Toast from 'react-native-toast-message';
 
 // LayoutAnimation is natively supported in the New Architecture, no experimental flag needed.
 
@@ -37,28 +38,17 @@ export default function AuthScreen() {
   const [signupPassword, setSignupPassword] = useState('');
   const [signupPasswordConfirm, setSignupPasswordConfirm] = useState('');
   const [loading, setLoading] = useState(false);
-  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
-  const [feedbackType, setFeedbackType] = useState<'error' | 'success' | null>(null);
-
-  const clearFeedback = () => {
-    setFeedbackMessage(null);
-    setFeedbackType(null);
-  };
 
   const handleTabChange = (newMode: "login" | "sign-up") => {
     if (newMode !== mode) {
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setMode(newMode);
-      clearFeedback();
     }
   };
 
   const handleLogin = async () => {
-    clearFeedback();
-
     if (!loginEmail.trim() || !loginPassword) {
-      setFeedbackType('error');
-      setFeedbackMessage('Preencha e-mail e senha para entrar.');
+      Toast.show({ type: 'error', text1: 'Atenção', text2: 'Preencha e-mail/usuário e senha para entrar.' });
       return;
     }
 
@@ -66,8 +56,7 @@ export default function AuthScreen() {
     try {
       const { data, error } = await signIn(loginEmail.trim(), loginPassword);
       if (error) {
-        setFeedbackType('error');
-        setFeedbackMessage(error.message || 'Falha ao efetuar login.');
+        Toast.show({ type: 'error', text1: 'Erro no Login', text2: error.message || 'Falha ao efetuar login.' });
         return;
       }
       if (data?.user) {
@@ -79,17 +68,13 @@ export default function AuthScreen() {
   };
 
   const handleSignUp = async () => {
-    clearFeedback();
-
     if (!signupUsername.trim() || !signupEmail.trim() || !signupPassword || !signupPasswordConfirm) {
-      setFeedbackType('error');
-      setFeedbackMessage('Preencha todos os campos para cadastrar.');
+      Toast.show({ type: 'error', text1: 'Atenção', text2: 'Preencha todos os campos para cadastrar.' });
       return;
     }
 
     if (signupPassword !== signupPasswordConfirm) {
-      setFeedbackType('error');
-      setFeedbackMessage('As senhas não coincidem.');
+      Toast.show({ type: 'error', text1: 'Atenção', text2: 'As senhas não coincidem.' });
       return;
     }
 
@@ -102,8 +87,7 @@ export default function AuthScreen() {
       );
 
       if (error) {
-        setFeedbackType('error');
-        setFeedbackMessage(error.message || 'Falha ao cadastrar.');
+        Toast.show({ type: 'error', text1: 'Erro no Cadastro', text2: error.message || 'Falha ao cadastrar.' });
         return;
       }
 
@@ -111,8 +95,7 @@ export default function AuthScreen() {
         if (data.session) {
           router.replace('/home' as any);
         } else {
-          setFeedbackType('success');
-          setFeedbackMessage('Cadastro realizado! Verifique seu e-mail para ativar a conta.');
+          Toast.show({ type: 'success', text1: 'Sucesso!', text2: 'Cadastro realizado! Verifique seu e-mail para ativar a conta.' });
         }
       }
     } finally {
@@ -157,10 +140,9 @@ export default function AuthScreen() {
             {mode === "login" ? (
               <View key="login-form" style={{ width: "100%" }}>
                 <Input
-                  label="E-MAIL"
-                  placeholder="Ex: usuario@email.com"
-                  icon={<Mail color={CustomColors.grayScale} size={18} />}
-                  keyboardType="email-address"
+                  label="E-MAIL OU USUÁRIO"
+                  placeholder="Ex: seu@email.com ou seunome"
+                  icon={<User color={CustomColors.grayScale} size={18} />}
                   autoCapitalize="none"
                   value={loginEmail}
                   onChangeText={setLoginEmail}
@@ -176,21 +158,10 @@ export default function AuthScreen() {
                 <TouchableOpacity>
                   <Text style={styles.forgotPassword}>Esqueceu a senha?</Text>
                 </TouchableOpacity>
-                {feedbackMessage ? (
-                  <Text
-                    style={{
-                      color: feedbackType === 'success' ? CustomColors.success : CustomColors.danger,
-                      marginTop: 14,
-                      textAlign: 'center',
-                      fontFamily: 'Inter',
-                    }}
-                  >
-                    {feedbackMessage}
-                  </Text>
-                ) : null}
+                
                 <Button
                   variant="gradient"
-                  containerStyle={styles.loginButton}
+                  containerStyle={[styles.loginButton, { marginTop: 24 }]}
                   loading={loading}
                   onPress={handleLogin}
                 >
@@ -232,21 +203,10 @@ export default function AuthScreen() {
                   value={signupPasswordConfirm}
                   onChangeText={setSignupPasswordConfirm}
                 />
-                {feedbackMessage ? (
-                  <Text
-                    style={{
-                      color: feedbackType === 'success' ? CustomColors.success : CustomColors.danger,
-                      marginTop: 14,
-                      textAlign: 'center',
-                      fontFamily: 'Inter',
-                    }}
-                  >
-                    {feedbackMessage}
-                  </Text>
-                ) : null}
+                
                 <Button
                   variant="gradient"
-                  containerStyle={styles.loginButton}
+                  containerStyle={[styles.loginButton, { marginTop: 24 }]}
                   loading={loading}
                   onPress={handleSignUp}
                 >

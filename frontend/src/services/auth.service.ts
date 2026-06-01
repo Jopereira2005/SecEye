@@ -64,12 +64,27 @@ export async function signUp(
 }
 
 export async function signIn(
-  email: string,
+  emailOrUsername: string,
   password: string
 ): Promise<Result<{ user: AuthUser | null; session: Session | null }>> {
   try {
+    let loginEmail = emailOrUsername.trim();
+
+    // Se não tiver '@', assumimos que é um username e buscamos o email dele via RPC
+    if (!loginEmail.includes('@')) {
+      const { data: emailData, error: rpcError } = await supabase.rpc('get_email_by_username', {
+        p_username: loginEmail
+      });
+
+      if (rpcError || !emailData) {
+        return { data: null, error: new Error('Usuário não encontrado ou erro de conexão.') };
+      }
+      
+      loginEmail = emailData;
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
+      email: loginEmail,
       password,
     });
 

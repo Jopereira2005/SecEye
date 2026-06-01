@@ -1,4 +1,5 @@
 import type { AuthError, PostgrestError } from '@supabase/supabase-js';
+import { decode } from 'base64-arraybuffer';
 
 import type { IUser } from '../interfaces/user.interfaces';
 import { supabase } from './supabase';
@@ -9,6 +10,7 @@ type UpdateProfilePayload = {
   username?: string;
   first_name?: string;
   last_name?: string;
+  avatar_url?: string | null;
 };
 
 export async function getProfile(): Promise<Result<IUser>> {
@@ -81,6 +83,38 @@ export async function updateProfile(payload: UpdateProfilePayload): Promise<Resu
     return { data, error: null };
   } catch (error) {
     console.error('updateProfile exception:', error);
+    return { data: null, error: error as Error };
+  }
+}
+
+export async function uploadAvatar(imageBase64: string, userId: string, ext: string = 'jpg'): Promise<Result<string>> {
+  try {
+    const filePath = `${userId}/avatar-${Date.now()}.${ext}`;
+
+    // Converter Base64 para ArrayBuffer usando base64-arraybuffer (Natível e sem fetch bugs no RN)
+    const arrayBuffer = decode(imageBase64);
+
+    // Fazer o upload para o bucket 'avatars'
+    const { data, error } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, arrayBuffer, {
+        upsert: true,
+        contentType: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+      });
+
+    if (error) {
+      console.error('uploadAvatar storage error:', error);
+      return { data: null, error };
+    }
+
+    // Gerar e retornar a URL pública
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    return { data: publicUrl, error: null };
+  } catch (error) {
+    console.error('uploadAvatar exception:', error);
     return { data: null, error: error as Error };
   }
 }

@@ -107,9 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!result.error) {
           setSession(result.data?.session ?? null);
           setUser(result.data?.user ?? null);
-          if (result.data?.user) {
-            await refreshProfile();
-          }
+          // O refreshProfile será chamado automaticamente pelo onAuthStateChange listener
         } else {
           setError(result.error);
         }
@@ -118,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       }
     },
-    [refreshProfile]
+    []
   );
 
   const signUpWithEmail = useCallback(

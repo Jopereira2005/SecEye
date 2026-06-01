@@ -5,30 +5,36 @@ import {
   TouchableOpacity,
   ScrollView,
   Keyboard,
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
 } from 'react-native';
 
+import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
 import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 
 import { styles } from './_profile.styles';
 import { Input } from '@/components/Input/input';
 import { Button } from '@/components/Button/button';
 import { useAuth } from '@/contexts/auth.context';
-import { updateProfile } from '@/services/user.service';
+import { updateProfile, uploadAvatar } from '@/services/user.service';
+import { CustomColors } from '@/constants/theme';
+import Toast from 'react-native-toast-message';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, refreshProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!profile) {
@@ -39,14 +45,67 @@ export default function ProfileScreen() {
     setLastName(profile.last_name || '');
     setUsername(profile.username || '');
     setEmail(profile.email || '');
+    setAvatarUrl(profile.avatar_url || null);
   }, [profile]);
+
+  const handlePickAvatar = async () => {
+    try {
+      // Pedir permissão
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permissão negada', 'Precisamos de acesso à galeria para alterar sua foto de perfil.');
+        return;
+      }
+
+      // Abrir galeria
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+        base64: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0 && profile) {
+        setUploadingAvatar(true);
+        const imageBase64 = result.assets[0].base64;
+        const imageUri = result.assets[0].uri;
+        const ext = imageUri.split('.').pop()?.toLowerCase() || 'jpg';
+        
+        if (!imageBase64) throw new Error("Base64 indisponível");
+
+        // Fazer upload
+        const { data: newAvatarUrl, error: uploadError } = await uploadAvatar(imageBase64, profile.id, ext);
+        
+        if (uploadError || !newAvatarUrl) {
+          throw uploadError || new Error('Erro desconhecido ao fazer upload da imagem');
+        }
+
+        // Atualizar perfil
+        const { error: updateError } = await updateProfile({
+          avatar_url: newAvatarUrl
+        });
+
+        if (updateError) {
+          throw updateError;
+        }
+
+        setAvatarUrl(newAvatarUrl);
+        await refreshProfile();
+        Toast.show({ type: 'success', text1: 'Sucesso', text2: 'Foto de perfil atualizada!' });
+      }
+    } catch (err: any) {
+      Toast.show({ type: 'error', text1: 'Erro', text2: err.message || 'Erro ao alterar a foto.' });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   const handleSave = async () => {
     Keyboard.dismiss();
-    setFeedback(null);
 
     if (!username.trim()) {
-      setFeedback({ type: 'error', message: 'O usuário é obrigatório.' });
+      Toast.show({ type: 'error', text1: 'Atenção', text2: 'O usuário é obrigatório.' });
       return;
     }
 
@@ -59,15 +118,16 @@ export default function ProfileScreen() {
       });
 
       if (error) {
-        setFeedback({ type: 'error', message: error.message || 'Erro ao atualizar perfil.' });
+        Toast.show({ type: 'error', text1: 'Erro', text2: error.message || 'Erro ao atualizar perfil.' });
         return;
       }
 
-      setFeedback({ type: 'success', message: 'Perfil atualizado com sucesso.' });
+      Toast.show({ type: 'success', text1: 'Sucesso', text2: 'Perfil atualizado com sucesso.' });
       if (data) {
         setFirstName(data.first_name || '');
         setLastName(data.last_name || '');
         setUsername(data.username || '');
+        await refreshProfile();
       }
     } finally {
       setSaving(false);
@@ -79,7 +139,7 @@ export default function ProfileScreen() {
     try {
       const { error } = await signOut();
       if (error) {
-        setFeedback({ type: 'error', message: error.message || 'Erro ao sair.' });
+        Toast.show({ type: 'error', text1: 'Erro', text2: error.message || 'Erro ao sair.' });
         return;
       }
       router.replace('/auth' as any);
@@ -99,20 +159,23 @@ export default function ProfileScreen() {
         <View style={styles.avatarSection}>
           <View style={styles.avatarContainer}>
             <Image
-              source={require('@/assets/images/avatar.png')}
+              source={avatarUrl ? { uri: avatarUrl } : require('@/assets/images/avatar.png')}
               style={styles.avatar}
               contentFit="cover"
             />
+            {uploadingAvatar && (
+              <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 62.5, justifyContent: 'center', alignItems: 'center' }]}>
+                <ActivityIndicator color={CustomColors.primary} size="large" />
+              </View>
+            )}
 
-            <TouchableOpacity activeOpacity={0.8}>
-              <LinearGradient
-                colors={['#0052CC', '#48D7F9']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                style={styles.editAvatarButton}
-              >
-                <Feather name="edit-2" size={18} color="#fff" />
-              </LinearGradient>
+            <TouchableOpacity 
+              activeOpacity={0.8} 
+              style={styles.editAvatarButton}
+              onPress={handlePickAvatar}
+              disabled={uploadingAvatar}
+            >
+              <Feather name="edit-2" size={18} color="#fff" />
             </TouchableOpacity>
           </View>
 
@@ -161,39 +224,27 @@ export default function ProfileScreen() {
           <View style={styles.buttonsContainer}>
 
             <Button
-              variant="outline"
-              containerStyle={styles.dangerButton}
+              variant="danger"
               onPress={handleSignOut}
               loading={loading}
+              style={{ width: '100%' }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Feather name="log-out" size={18} color="#FF5252" />
-                <Text style={styles.dangerButtonText}>Encerrar Sessão</Text>
+                <Feather name="log-out" size={18} color="#fff" />
+                <Text style={{ color: '#fff', fontWeight: 'bold' }}>Encerrar Sessão</Text>
               </View>
             </Button>
 
             <Button
               variant="gradient"
-              containerStyle={styles.saveButton}
               onPress={handleSave}
               loading={saving}
+              style={{ width: '100%' }}
             >
-              <Text style={styles.saveButtonText}>Salvar Alterações</Text>
+              <Text style={{ color: '#fff', fontWeight: 'bold' }}>Salvar Alterações</Text>
             </Button>
 
           </View>
-          {feedback ? (
-            <Text
-              style={{
-                color: feedback.type === 'success' ? '#00c853' : '#ff5252',
-                textAlign: 'center',
-                marginTop: 12,
-                fontFamily: 'Inter',
-              }}
-            >
-              {feedback.message}
-            </Text>
-          ) : null}
         </View>
 
       </ScrollView>

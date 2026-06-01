@@ -7,6 +7,9 @@ import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 import { AuthProvider } from '@/contexts/auth.context';
+import { RouteGuard } from '@/components/RouteGuard/route-guard';
+import Toast from 'react-native-toast-message';
+import { toastConfig } from '@/components/Toast/toast-config';
 
 // Silencia o warning de Strict Mode falso-positivo do Reanimated 3+
 configureReanimatedLogger({
@@ -36,8 +39,11 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="light" />
       <AuthProvider>
-        <Slot />
+        <RouteGuard>
+          <Slot />
+        </RouteGuard>
       </AuthProvider>
+      <Toast config={toastConfig} topOffset={60} />
     </GestureHandlerRootView>
   );
 }

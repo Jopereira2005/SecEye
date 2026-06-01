@@ -1,143 +1,107 @@
 import { StyleSheet } from 'react-native';
+import { CustomColors, Spacing, CustomFonts } from '@/constants/theme';
+import { moderateScale } from 'react-native-size-matters';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111318',
+    backgroundColor: CustomColors.dark,
   },
 
   scrollContent: {
     paddingTop: 90,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-    gap: 32,
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.xxl,
+    gap: Spacing.xl,
   },
 
   /* Avatar Section */
 
   avatarSection: {
     alignItems: 'center',
+    marginBottom: Spacing.lg,
   },
 
   avatarContainer: {
     width: 125,
     height: 125,
     position: 'relative',
+    borderRadius: 62.5,
+    borderWidth: 2,
+    borderColor: CustomColors.primary,
   },
 
   avatar: {
     width: '100%',
     height: '100%',
-    borderRadius: 10,
+    borderRadius: 62.5,
   },
 
   editAvatarButton: {
     position: 'absolute',
-    right: -12,
-    bottom: -12,
-
+    right: 0,
+    bottom: 0,
     width: 40,
     height: 40,
-
-    borderRadius: 10,
-
+    borderRadius: 20,
+    backgroundColor: CustomColors.quartenary,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: CustomColors.dark,
   },
 
   userNameContainer: {
-    paddingTop: 20,
+    paddingTop: Spacing.md,
   },
 
   userName: {
-    fontSize: 28,
+    fontFamily: CustomFonts.inter,
     fontWeight: '800',
-    color: '#B3C7FF',
+    fontSize: moderateScale(28),
+    color: CustomColors.light,
   },
 
   /* Form */
 
   formSection: {
-    gap: 40,
+    gap: Spacing.xl,
   },
 
   inputsContainer: {
-    gap: 18,
-  },
-
-  inputWrapper: {
-    gap: 10,
-  },
-
-  inputLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    color: '#A5ADAB',
-  },
-
-  inputBackground: {
-    backgroundColor: '#282A2E',
-    borderRadius: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 18,
-  },
-
-  input: {
-    fontSize: 16,
-    color: '#F3FFFB',
+    gap: Spacing.lg,
   },
 
   /* Buttons */
 
   buttonsContainer: {
-    gap: 15,
+    gap: Spacing.md,
+    marginTop: Spacing.md,
   },
 
   dangerButton: {
     height: 56,
     borderRadius: 14,
-
-    backgroundColor: 'rgba(51, 53, 57, 0.5)',
-
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 10,
+    backgroundColor: CustomColors.applyOpacity(CustomColors.danger, 0.1),
+    borderWidth: 1,
+    borderColor: CustomColors.applyOpacity(CustomColors.danger, 0.2),
   },
 
   dangerButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#FF5252',
+    fontWeight: 'bold',
+    color: CustomColors.danger,
   },
 
   saveButton: {
-    height: 60,
-    borderRadius: 14,
-
-    justifyContent: 'center',
-    alignItems: 'center',
-
-    shadowColor: '#0052CC',
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.7,
-    shadowRadius: 20,
-
-    elevation: 10,
+    height: 56,
   },
 
   saveButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#F3FFFB',
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: CustomColors.dark,
   },
 });
 
-export default function StylesRoute() {
-  return null;
-}
+export default function StylesRoute() { return null; }
