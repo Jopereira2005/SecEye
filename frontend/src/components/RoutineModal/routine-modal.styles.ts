@@ -24,7 +24,9 @@ export const styles = StyleSheet.create({
   },
   dragIndicatorContainer: {
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.lg,
+    marginTop: -Spacing.md,
   },
   dragIndicator: {
     width: moderateScale(40),

@@ -53,12 +53,14 @@ export function RoutineModal({ visible, onClose, onSave, onDelete, routine }: Ro
 
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+  const [error, setError] = useState<string>("");
   
   // Local state to delay Modal unmount until exit animation finishes
   const [isModalMounted, setIsModalMounted] = useState(false);
 
   useEffect(() => {
     if (visible) {
+      setError("");
       if (routine) {
         setDescription(routine.description || "");
         setRepeatType(routine.repeat_type || 'once');
@@ -136,6 +138,12 @@ export function RoutineModal({ visible, onClose, onSave, onDelete, routine }: Ro
   };
 
   const handleSave = () => {
+    if (!description.trim()) {
+      setError("O nome da rotina é obrigatório.");
+      return;
+    }
+    
+    setError("");
     onSave({
       id: routine?.id,
       description,
@@ -245,9 +253,13 @@ export function RoutineModal({ visible, onClose, onSave, onDelete, routine }: Ro
                 label="Nome da Rotina"
                 placeholder="Ex: Modo Noturno"
                 value={description}
-                onChangeText={setDescription}
+                onChangeText={(text) => {
+                  setDescription(text);
+                  if (error) setError("");
+                }}
                 borderRadius={12}
                 containerStyle={{ marginBottom: 0 }}
+                error={error}
               />
             </View>
 

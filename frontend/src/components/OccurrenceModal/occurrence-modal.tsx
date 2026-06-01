@@ -40,10 +40,24 @@ interface OccurrenceModalProps {
 
 const formatDateTime = (isoString: string) => {
   try {
-    const d = new Date(isoString);
-    return `${d.toLocaleDateString()} às ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    let safeStr = isoString.replace('+00:00', '').replace('Z', '');
+    if (safeStr.includes('.')) safeStr = safeStr.split('.')[0];
+    
+    const [datePart, timePart] = safeStr.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hour, min, sec] = timePart.split(':').map(Number);
+    
+    const d = new Date(year, month - 1, day, hour, min, sec || 0);
+    if (isNaN(d.getTime())) return "--/--/---- 00:00";
+    
+    const dDay = d.getDate().toString().padStart(2, '0');
+    const dMonth = (d.getMonth() + 1).toString().padStart(2, '0');
+    const dYear = d.getFullYear();
+    const h = d.getHours().toString().padStart(2, '0');
+    const m = d.getMinutes().toString().padStart(2, '0');
+    return `${dDay}/${dMonth}/${dYear} às ${h}:${m}`;
   } catch (e) {
-    return "--/--/---- --:--";
+    return "--/--/---- 00:00";
   }
 };
 
@@ -261,7 +275,7 @@ export function OccurrenceModal({ visible, onClose, occurrence }: OccurrenceModa
                 <View>
                   <Text style={styles.infoLabel}>ID da Ocorrência</Text>
                   <Text style={styles.infoText}>
-                    #{occurrence.id}
+                    #{occurrence.id.slice(0, 8)}
                   </Text>
                 </View>
               </View>

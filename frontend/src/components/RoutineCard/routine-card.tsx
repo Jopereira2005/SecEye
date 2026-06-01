@@ -186,7 +186,7 @@ export function RoutineCard({
         </View>
 
         {/* Dummy view for measuring height */}
-        <View style={{ position: 'absolute', opacity: 0, zIndex: -1, width: '100%', pointerEvents: 'none' }}>
+        <View style={{ position: 'absolute', opacity: 0, zIndex: -1, left: 0, right: 0, pointerEvents: 'none' }}>
           <View 
             onLayout={(e) => {
               const h = e.nativeEvent.layout.height;

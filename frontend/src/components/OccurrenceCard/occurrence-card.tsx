@@ -8,11 +8,22 @@ import { CustomColors } from '@/constants/theme';
 import { IOcurrence } from '@/interfaces/ocurrence.interface';
 import { ICamera } from '@/interfaces/camera.interface';
 
-// We mock format methods since date handling usually goes in a util.
 const formatTime = (isoString: string) => {
   try {
-    const d = new Date(isoString);
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    let safeStr = isoString.replace('+00:00', '').replace('Z', '');
+    if (safeStr.includes('.')) safeStr = safeStr.split('.')[0];
+    
+    // Parse manual para evitar fallback de UTC do Hermes em strings ISO sem offset
+    const [datePart, timePart] = safeStr.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hour, min, sec] = timePart.split(':').map(Number);
+    
+    const d = new Date(year, month - 1, day, hour, min, sec || 0);
+    if (isNaN(d.getTime())) return "00:00";
+    
+    const h = d.getHours().toString().padStart(2, '0');
+    const m = d.getMinutes().toString().padStart(2, '0');
+    return `${h}:${m}`;
   } catch (e) {
     return "00:00";
   }
@@ -20,8 +31,20 @@ const formatTime = (isoString: string) => {
 
 const formatDate = (isoString: string) => {
   try {
-    const d = new Date(isoString);
-    return d.toLocaleDateString();
+    let safeStr = isoString.replace('+00:00', '').replace('Z', '');
+    if (safeStr.includes('.')) safeStr = safeStr.split('.')[0];
+    
+    const [datePart, timePart] = safeStr.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hour, min, sec] = timePart.split(':').map(Number);
+    
+    const d = new Date(year, month - 1, day, hour, min, sec || 0);
+    if (isNaN(d.getTime())) return "--/--/----";
+    
+    const dDay = d.getDate().toString().padStart(2, '0');
+    const dMonth = (d.getMonth() + 1).toString().padStart(2, '0');
+    const dYear = d.getFullYear();
+    return `${dDay}/${dMonth}/${dYear}`;
   } catch (e) {
     return "--/--/----";
   }
