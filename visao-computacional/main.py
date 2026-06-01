@@ -25,6 +25,7 @@ from src.monitoring import (
 from src.realtime import cleanup_realtime, polling_fallback_thread, setup_realtime_listener
 from src.shutdown import install_handlers
 from src.supabase_ops import carregar_cameras
+from src.streamer import start_streamer_server
 
 
 def banner_inicial():
@@ -107,6 +108,9 @@ def iniciar_threads_background():
 
     threading.Thread(target=auto_recovery_thread, daemon=True, name="AutoRecovery").start()
     print(">> [AUTO-RECOVERY] Thread de recuperacao automatica de cameras offline iniciada (verifica a cada 5min)")
+
+    threading.Thread(target=start_streamer_server, daemon=True, name="MJPEG-Streamer").start()
+    print(">> [STREAMER] Servidor de video (MJPEG) iniciado na porta 5000")
 
 
 def executar_loop_principal():

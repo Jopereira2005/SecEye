@@ -261,6 +261,22 @@ def on_occurrence_change(payload):
             print(f">> [REALTIME-OCORRENCIA] Erro: {e}")
 
 
+def on_routine_change(payload):
+    """Callback para mudanças na tabela routines."""
+    from .supabase_ops import carregar_camera_completa
+    print("\n>> [REALTIME-ROTINAS] Rotina alterada! Atualizando horários das câmeras...")
+    try:
+        # Quando uma rotina muda, todas as câmeras podem ser afetadas.
+        # Então recarregamos o config_full de todas as câmeras ativas localmente.
+        for cam_id in list(state.camera_configs.keys()):
+            cam_full = carregar_camera_completa(cam_id)
+            if cam_full:
+                state.camera_configs[cam_id] = cam_full
+                print(f">> [REALTIME-ROTINAS] Schedule atualizado para a câmera {cam_full.get('nome', cam_id)}")
+    except Exception as e:
+        print(f">> [REALTIME-ROTINAS] Erro ao processar atualização: {e}")
+
+
 async def realtime_websocket_loop():
     """Loop assíncrono mantendo o Realtime conectado (com reconexão)."""
     reconnect_delay = 5
@@ -314,6 +330,20 @@ async def realtime_websocket_loop():
                 callback=lambda payload: on_occurrence_change(payload)
             )
 
+            channel.on_postgres_changes(
+                event='*',
+                schema='public',
+                table='routines',
+                callback=lambda payload: on_routine_change(payload)
+            )
+
+            channel.on_postgres_changes(
+                event='*',
+                schema='public',
+                table='detection_zones',
+                callback=handle_postgres_change
+            )
+
             try:
                 await channel.subscribe()
             except Exception as sub_error:
@@ -325,7 +355,7 @@ async def realtime_websocket_loop():
 
             print(">> [REALTIME] Conectado via postgres_changes!")
             print(">> [REALTIME] Eventos monitorados: INSERT, UPDATE, DELETE")
-            print(">> [REALTIME] Tabelas: public.cameras, public.occurrences")
+            print(">> [REALTIME] Tabelas: public.cameras, public.occurrences, public.routines, public.detection_zones")
 
             while state.realtime_connected:
                 try:

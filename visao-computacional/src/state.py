@@ -22,6 +22,7 @@ camera_caps: dict = {}
 camera_threads: dict = {}
 camera_active: dict = {}
 camera_last_frame: dict = {}
+latest_frames: dict = {}
 camera_frame_count: dict = {}
 camera_restart_count: dict = {}
 camera_paused_by_schedule: dict = {}
@@ -54,6 +55,7 @@ webhook_timers_lock = threading.Lock()
 # ================== LOCKS / SEMAFOROS ==================
 upload_semaphore = threading.Semaphore(1)
 camera_last_frame_lock = threading.Lock()
+latest_frames_lock = threading.Lock()
 camera_active_lock = threading.Lock()
 camera_startup_semaphore = threading.Semaphore(config.MAX_CONCURRENT_STARTS)
 

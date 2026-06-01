@@ -1,4 +1,4 @@
-ALIVE: 2026-05-16 22:18:34
-Threads: 1/1
-Frames: 565
-Eventos: 3
+ALIVE: 2026-06-01 19:41:29
+Threads: 2/2
+Frames: 15
+Eventos: 1

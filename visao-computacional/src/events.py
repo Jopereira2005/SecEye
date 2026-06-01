@@ -107,9 +107,8 @@ def processar_evento_worker():
                         occurrence_data = {
                             "camera_id": str(camera_uuid),
                             "event_image": imagem_url,
+                            "timestamp": timestamp.isoformat(),
                         }
-                        if detection_zone_id:
-                            occurrence_data["detection_zone_id"] = int(detection_zone_id)
 
                         state.supabase.table("occurrences").insert(occurrence_data).execute()
                         insert_time = time.time() - start_time
@@ -161,7 +160,7 @@ def enviar_evento(frame, camera, wait_completion=False):
     try:
         frame_copy = frame.copy()
         camera_copy = camera.copy()
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now()
 
         try:
             state.eventos_queue.put({

@@ -167,8 +167,6 @@ def processar_camera_thread(camera_id, camera_config):
                                 print(f">> [THREAD]   {camera['nome']}: Falha ao reconectar apos erro (pausada)")
                             last_keepalive_check = time.time()
 
-                    time.sleep(1)
-                    continue
                 else:
                     state.camera_paused_by_schedule[cam_id] = False
 
@@ -268,20 +266,35 @@ def processar_camera_thread(camera_id, camera_config):
                 elif frame_count % 50 == 0:
                     atualizar_status_async(cam_id, status="online")
 
+                # Salva o frame se estiver pausada pelo agendamento (assim o App não fica escuro)
+                schedule_pre_yolo = camera.get("schedule") or []
+                is_paused = state.camera_paused_by_schedule.get(cam_id, False) or not hora_permitida(schedule_pre_yolo)
+                if is_paused:
+                    try:
+                        frame_paused = frame.copy()
+                        cv2.putText(frame_paused, "IA DESATIVADA (FORA DO HORARIO)", (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+                        # Desenha a ROI mesmo pausada
+                        roi_points = camera.get("roi_points")
+                        if roi_points:
+                            roi = _normalizar_roi(roi_points, frame.shape[1], frame.shape[0])
+                            if roi is not None:
+                                cv2.polylines(frame_paused, [roi], isClosed=True, color=(255, 0, 0), thickness=2)
+
+                        frame_mjpeg = cv2.resize(frame_paused, (640, 360))
+                        ret, buffer = cv2.imencode('.jpg', frame_mjpeg, [int(cv2.IMWRITE_JPEG_QUALITY), 60])
+                        if ret:
+                            with state.latest_frames_lock:
+                                state.latest_frames[cam_id] = buffer.tobytes()
+                    except Exception as e:
+                        print(f">> [MJPEG ERROR] Falha ao processar frame pausado: {e}")
+                        
+                    state.camera_paused_by_schedule[cam_id] = True
+                    time.sleep(1.0 / config.FPS_LIMIT)
+                    continue
+
                 # FPS / process_every (usa process_every da câmera se configurado)
                 process_every = camera.get('process_every') or config.PROCESS_EVERY
                 if frame_count % process_every != 0:
-                    time.sleep(1.0 / config.FPS_LIMIT)
-                    continue
-
-                # Dupla checagem de schedule antes do YOLO
-                if state.camera_paused_by_schedule.get(cam_id, False):
-                    time.sleep(1.0 / config.FPS_LIMIT)
-                    continue
-
-                schedule_pre_yolo = camera.get("schedule") or []
-                if not hora_permitida(schedule_pre_yolo):
-                    state.camera_paused_by_schedule[cam_id] = True
                     time.sleep(1.0 / config.FPS_LIMIT)
                     continue
 
@@ -337,6 +350,16 @@ def processar_camera_thread(camera_id, camera_config):
                                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
                 cv2.polylines(frame, [roi], isClosed=True, color=(255, 0, 0), thickness=3)
+
+                # Grava no state para o servidor MJPEG do App
+                try:
+                    frame_mjpeg = cv2.resize(frame, (640, 360))
+                    ret, buffer = cv2.imencode('.jpg', frame_mjpeg, [int(cv2.IMWRITE_JPEG_QUALITY), 60])
+                    if ret:
+                        with state.latest_frames_lock:
+                            state.latest_frames[cam_id] = buffer.tobytes()
+                except Exception as e:
+                    print(f">> [MJPEG ERROR] Falha ao processar frame ativo: {e}")
 
                 if config.SHOW_FRAMES:
                     try:

@@ -1,8 +1,13 @@
 """Conexão RTSP via OpenCV."""
 import time
 import traceback
+import os
 
 import cv2
+
+# Força o FFmpeg (OpenCV) a usar TCP ao invés de UDP.
+# Isso resolve o erro: method SETUP failed: 461 Unsupported transport
+os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp"
 
 from .supabase_ops import atualizar_status_async, set_camera_online
 
@@ -23,8 +28,12 @@ def abrir_rtsp(camera):
 
     print(f">> Abrindo RTSP [{cam_name} ID:{cam_id}]: {url}")
     try:
+        import sys
         if isinstance(url, int):
-            cap = cv2.VideoCapture(url)
+            if sys.platform == "win32":
+                cap = cv2.VideoCapture(url, cv2.CAP_DSHOW)
+            else:
+                cap = cv2.VideoCapture(url)
         else:
             cap = cv2.VideoCapture(url, cv2.CAP_FFMPEG)
 
