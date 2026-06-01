@@ -8,6 +8,7 @@ export interface IUser {
   first_name: string;
   last_name: string;
   push_token: string | null;
+  avatar_url: string | null;
   created_at: string;
   updated_at: string;
   

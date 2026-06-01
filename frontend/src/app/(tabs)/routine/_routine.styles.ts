@@ -42,7 +42,7 @@ export const styles = StyleSheet.create({
 
   floatingButtonContainer: {
     position: "absolute",
-    bottom: Spacing.lg,
+    bottom: Spacing.md,
     left: Spacing.lg,
     right: Spacing.lg,
   },

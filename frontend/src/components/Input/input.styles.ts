@@ -34,6 +34,7 @@ export const styles = StyleSheet.create({
     fontFamily: CustomFonts.inter,
     fontSize: moderateScale(14),
     paddingVertical: 0, // Text input padding handled by wrapper usually
+    minHeight: moderateScale(28), // Ensures password and text inputs have identical heights
   },
   eyeButton: {
     padding: moderateScale(4),

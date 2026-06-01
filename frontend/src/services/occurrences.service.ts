@@ -5,7 +5,7 @@ export async function getOccurrences(cameraId: string, limit = 50): Promise<IOcu
   try {
     const { data, error } = await supabase
       .from('occurrences')
-      .select('*')
+      .select('*, camera:cameras(*)')
       .eq('camera_id', cameraId)
       .order('timestamp', { ascending: false })
       .limit(limit);
@@ -25,7 +25,7 @@ export async function getRecentOccurrences(limit = 20): Promise<IOcurrence[]> {
 
     const { data, error } = await supabase
       .from('occurrences')
-      .select('*, cameras!inner(user_id)')
+      .select('*, camera:cameras!inner(*)')
       .eq('cameras.user_id', user.id)
       .order('timestamp', { ascending: false })
       .limit(limit);
@@ -34,6 +34,20 @@ export async function getRecentOccurrences(limit = 20): Promise<IOcurrence[]> {
     return data as IOcurrence[];
   } catch (err) {
     console.error('getRecentOccurrences:', err);
+    throw err;
+  }
+}
+
+export async function deleteOccurrences(ids: string[]): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('occurrences')
+      .delete()
+      .in('id', ids);
+
+    if (error) throw error;
+  } catch (err) {
+    console.error('deleteOccurrences:', err);
     throw err;
   }
 }

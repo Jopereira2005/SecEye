@@ -10,42 +10,71 @@ import { OccurrenceCard } from '@/components/OccurrenceCard/occurrence-card';
 import { styles } from './_home.styles';
 import { CustomColors, Spacing } from '@/constants/theme';
 import { useRoutines } from '@/hooks/use-routines';
+import { useOccurrences } from '@/hooks/use-occurrences';
+import { useAuth } from '@/contexts/auth.context';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-const MOCK_OCCURRENCES: any[] = [
-  {
-    id: 'occ-1000',
-    timestamp: new Date().toISOString(),
-    event_image: null,
-    camera: { name: 'Garagem Principal', severity: 'high' }
-  },
-  {
-    id: 'occ-1001',
-    timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-    event_image: null,
-    camera: { name: 'Jardim Fundos', severity: 'medium' }
-  },
-  {
-    id: 'occ-1002',
-    timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-    event_image: null,
-    camera: { name: 'Portão Frontal', severity: 'low' }
-  }
-];
+type StatFilter = 'today' | 'week' | 'month' | 'all';
 
 export default function Home() {
   const router = useRouter();
   const { isSystemActive, activeRoutines } = useRoutines();
+  const { occurrences } = useOccurrences();
+  const { profile } = useAuth();
+
+  const [statFilter, setStatFilter] = React.useState<StatFilter>('today');
 
   const routineScale = useSharedValue(1);
   const routineAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: routineScale.value }]
   }));
 
+  const statScale = useSharedValue(1);
+  const statAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: statScale.value }]
+  }));
+
   const routineText = activeRoutines.length === 0 
     ? 'Nenhuma' 
     : activeRoutines.map(r => r.description).filter(Boolean).join(', ');
+
+  const cycleStatFilter = () => {
+    if (statFilter === 'today') setStatFilter('week');
+    else if (statFilter === 'week') setStatFilter('month');
+    else if (statFilter === 'month') setStatFilter('all');
+    else setStatFilter('today');
+  };
+
+  const getFilteredOccurrencesCount = () => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    return occurrences.filter(o => {
+      const occDate = new Date(o.timestamp);
+      occDate.setHours(0, 0, 0, 0);
+
+      if (statFilter === 'today') {
+        return occDate.getTime() === now.getTime();
+      } else if (statFilter === 'week') {
+        const lastWeek = new Date(now);
+        lastWeek.setDate(lastWeek.getDate() - 7);
+        return occDate.getTime() >= lastWeek.getTime();
+      } else if (statFilter === 'month') {
+        const lastMonth = new Date(now);
+        lastMonth.setMonth(lastMonth.getMonth() - 1);
+        return occDate.getTime() >= lastMonth.getTime();
+      }
+      return true; // para 'all'
+    }).length;
+  };
+
+  const statLabels = {
+    today: 'HOJE',
+    week: 'SEMANA',
+    month: 'MÊS',
+    all: 'TODAS'
+  };
   
   return (
     <View style={styles.container}>
@@ -56,12 +85,12 @@ export default function Home() {
       >
         <View style={styles.profileSection}>
           <Image 
-            source={require('@/assets/images/avatar.png')}
+            source={profile?.avatar_url ? { uri: profile.avatar_url } : require('@/assets/images/avatar.png')}
             style={styles.avatar} 
           />
           <View style={styles.profileTextContainer}>
             <Text style={styles.greetingText}>
-              Olá, <Text style={styles.nameText}>MR PAXE</Text>
+              Olá, <Text style={styles.nameText}>{profile?.first_name ? profile.first_name.toUpperCase() : 'USUÁRIO'}</Text>
             </Text>
             <Text style={styles.statusText}>
               {isSystemActive 
@@ -88,17 +117,25 @@ export default function Home() {
         </Button>
 
         <View style={styles.statsContainer}>
-          <View style={[styles.statCard]}>
+          <AnimatedPressable 
+            style={[styles.statCard, statAnimatedStyle]}
+            onPressIn={() => statScale.value = withTiming(0.95, { duration: 100 })}
+            onPressOut={() => statScale.value = withTiming(1, { duration: 150 })}
+            onPress={cycleStatFilter}
+          >
             <View style={styles.statHeader}>
               <TriangleAlert color={CustomColors.primary} size={24} />
-              <Text style={styles.statLabelSmall}>HOJE</Text>
+              <Text style={[styles.statLabelSmall, { color: CustomColors.primary }]}>
+                {statLabels[statFilter]} ▼
+              </Text>
             </View>
             <View style={styles.statTextContainer}>
-              <Text style={styles.statCount}>02</Text>
+              <Text style={styles.statCount}>
+                {getFilteredOccurrencesCount().toString().padStart(2, '0')}
+              </Text>
               <Text style={styles.statSubtitle}>OCORRÊNCIAS</Text>
             </View>
-
-          </View>
+          </AnimatedPressable>
 
           <AnimatedPressable 
             style={[styles.statCard, routineAnimatedStyle]}
@@ -119,19 +156,33 @@ export default function Home() {
         <View style={styles.recentActivitySection}>
           <Text style={styles.sectionTitle}>Atividade Recente</Text>
 
-          {MOCK_OCCURRENCES.map((item) => (
-            <OccurrenceCard 
-              key={item.id} 
-              occurrence={item} 
-              size="recent" 
-              onPress={(occ) => {
-                router.navigate({
-                  pathname: '/(tabs)/occurrences',
-                  params: { openId: occ.id, _t: Date.now() }
-                } as any);
-              }}
-            />
-          ))}
+          {occurrences.length === 0 ? (
+            <Text style={{ color: CustomColors.grayScale, marginTop: Spacing.sm }}>Nenhuma atividade registrada.</Text>
+          ) : (
+            <View>
+              {occurrences.slice(0, 5).map((item) => (
+                <OccurrenceCard 
+                  key={item.id} 
+                  occurrence={item} 
+                  size="recent" 
+                  onPress={(occ) => {
+                    router.navigate({
+                      pathname: '/(tabs)/occurrences',
+                      params: { openId: occ.id, _t: Date.now() }
+                    } as any);
+                  }}
+                />
+              ))}
+              
+              <Button 
+                variant="outline" 
+                containerStyle={{ marginTop: Spacing.md, borderColor: 'rgba(255,255,255,0.1)' }}
+                onPress={() => router.navigate('/(tabs)/occurrences')}
+              >
+                <Text style={{ color: CustomColors.primary, fontWeight: 'bold' }}>Ver todas as ocorrências</Text>
+              </Button>
+            </View>
+          )}
         </View>
       </ScrollView>
     </View>

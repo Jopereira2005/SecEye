@@ -11,58 +11,12 @@ import { IOcurrence } from "@/interfaces/ocurrence.interface";
 import { ICamera } from "@/interfaces/camera.interface";
 import { ShieldAlert, LayoutList, Square, SlidersHorizontal, Grid2X2 } from "lucide-react-native";
 
-// Mock Data
-const MOCK_CAMERAS: ICamera[] = [
-  {
-    id: "cam1",
-    name: "Entrada Principal",
-    status: "online",
-    is_active: true,
-    severity: "high",
-    user_id: "user1",
-    description: null,
-    rtsp_url: "",
-    min_confidence: 80,
-    process_every: 1,
-    cooldown_seconds: 10,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: "cam2",
-    name: "Estacionamento Leste",
-    status: "online",
-    is_active: true,
-    severity: "low",
-    user_id: "user1",
-    description: null,
-    rtsp_url: "",
-    min_confidence: 60,
-    process_every: 2,
-    cooldown_seconds: 30,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
-];
-
-const generateMockOccurrences = (): IOcurrence[] => {
-  return Array.from({ length: 15 }).map((_, index) => {
-    const isHigh = index % 3 === 0;
-    const camera = isHigh ? MOCK_CAMERAS[0] : MOCK_CAMERAS[1];
-    return {
-      id: `occ-100${index}`,
-      camera_id: camera.id,
-      timestamp: new Date(Date.now() - index * 3600000).toISOString(),
-      event_image: `https://picsum.photos/seed/${index + 400}/800/600`, // Placeholder
-      camera: camera
-    };
-  });
-};
-
-const ALL_OCCURRENCES = generateMockOccurrences();
+import { getCameras } from "@/services/cameras.service";
+import { useOccurrences } from "@/hooks/use-occurrences";
 
 export default function OccurrencesScreen() {
-  const [occurrences, setOccurrences] = useState<IOcurrence[]>(ALL_OCCURRENCES);
+  const { occurrences, loading, refresh, removeOccurrences } = useOccurrences();
+  const [cameras, setCameras] = useState<ICamera[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   
   const [filterState, setFilterState] = useState<IFilterState>(INITIAL_FILTER_STATE);
@@ -78,6 +32,11 @@ export default function OccurrencesScreen() {
   
   const params = useLocalSearchParams();
 
+  useEffect(() => {
+    // Carregar lista de câmeras ativas do usuário para os filtros
+    getCameras().then(data => setCameras(data)).catch(err => console.error("Erro ao carregar câmeras", err));
+  }, []);
+
   // Escuta os parâmetros da rota para abrir o modal via deep link ou navegação
   useEffect(() => {
     if (params.openId) {
@@ -86,7 +45,7 @@ export default function OccurrencesScreen() {
         // Simula o delay de requisição para a API real
         await new Promise(resolve => setTimeout(resolve, 800));
         
-        const found = ALL_OCCURRENCES.find(o => o.id === params.openId);
+        const found = occurrences.find(o => o.id === params.openId);
         if (found) {
           setSelectedOccurrence(found);
           setIsModalVisible(true);
@@ -96,35 +55,29 @@ export default function OccurrencesScreen() {
 
       fetchDeepLink();
     }
-  }, [params.openId, params._t]);
+  }, [params.openId, params._t, occurrences]);
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    // Simula chamada a API
-    setTimeout(() => {
-      setRefreshing(false);
-      // Aqui restauraria os dados padrão
-      setOccurrences([...ALL_OCCURRENCES]);
-    }, 1500);
-  }, []);
+    await refresh();
+    setRefreshing(false);
+  }, [refresh]);
 
-  const applyFilters = (filters: IFilterState) => {
-    setFilterState(filters);
-    
-    let filtered = [...ALL_OCCURRENCES];
+  const filteredOccurrences = React.useMemo(() => {
+    let filtered = [...occurrences];
 
     // Filtro por Câmeras
-    if (filters.cameras.length > 0) {
-      filtered = filtered.filter(o => o.camera_id && filters.cameras.includes(o.camera_id));
+    if (filterState.cameras.length > 0) {
+      filtered = filtered.filter(o => o.camera_id && filterState.cameras.includes(o.camera_id));
     }
 
     // Filtro por Severidade
-    if (filters.severities.length > 0) {
-      filtered = filtered.filter(o => o.camera?.severity && filters.severities.includes(o.camera.severity));
+    if (filterState.severities.length > 0) {
+      filtered = filtered.filter(o => o.camera?.severity && filterState.severities.includes(o.camera.severity));
     }
 
     // Filtro por Data
-    if (filters.dateRange !== 'all') {
+    if (filterState.dateRange !== 'all') {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -132,13 +85,13 @@ export default function OccurrencesScreen() {
         const occurrenceDate = new Date(o.timestamp);
         occurrenceDate.setHours(0, 0, 0, 0);
 
-        if (filters.dateRange === 'today') {
+        if (filterState.dateRange === 'today') {
           return occurrenceDate.getTime() === today.getTime();
-        } else if (filters.dateRange === 'yesterday') {
+        } else if (filterState.dateRange === 'yesterday') {
           const yesterday = new Date(today);
           yesterday.setDate(yesterday.getDate() - 1);
           return occurrenceDate.getTime() === yesterday.getTime();
-        } else if (filters.dateRange === 'week') {
+        } else if (filterState.dateRange === 'week') {
           const lastWeek = new Date(today);
           lastWeek.setDate(lastWeek.getDate() - 7);
           return occurrenceDate.getTime() >= lastWeek.getTime();
@@ -147,7 +100,11 @@ export default function OccurrencesScreen() {
       });
     }
 
-    setOccurrences(filtered);
+    return filtered;
+  }, [occurrences, filterState]);
+
+  const applyFilters = (filters: IFilterState) => {
+    setFilterState(filters);
   };
 
   const toggleSelection = (id: string) => {
@@ -191,8 +148,8 @@ export default function OccurrencesScreen() {
         { 
           text: "Excluir", 
           style: "destructive",
-          onPress: () => {
-            setOccurrences(prev => prev.filter(o => !selectedIds.includes(o.id)));
+          onPress: async () => {
+            await removeOccurrences(selectedIds);
             cancelSelection();
           }
         }
@@ -206,7 +163,7 @@ export default function OccurrencesScreen() {
         <View>
           <Text style={styles.headerTitle}>Ocorrências</Text>
           <Text style={styles.headerSubtitle}>
-            {occurrences.length} {occurrences.length === 1 ? 'registro encontrado' : 'registros encontrados'}
+            {filteredOccurrences.length} {filteredOccurrences.length === 1 ? 'registro encontrado' : 'registros encontrados'}
           </Text>
         </View>
         <View style={{ flexDirection: 'row', gap: 12, backgroundColor: CustomColors.quartenary, padding: 6, borderRadius: 8 }}>
@@ -263,42 +220,47 @@ export default function OccurrencesScreen() {
         </ScrollView>
       </View>
 
-      {/* Lista Principal */}
       <View style={styles.mainContent}>
-        <FlatList
-          key={viewMode} // Força re-render ao mudar o numColumns
-          data={occurrences}
-          keyExtractor={(item) => item.id}
-          numColumns={viewMode === 'small' ? 2 : 1}
-          columnWrapperStyle={viewMode === 'small' ? { gap: 16 } : undefined}
-          contentContainerStyle={styles.listContent}
-          ListHeaderComponent={renderHeader}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={CustomColors.primary}
-              colors={[CustomColors.primary]}
-            />
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <ShieldAlert size={48} color={CustomColors.grayScaleDark} />
-              <Text style={styles.emptyText}>Nenhuma ocorrência encontrada.</Text>
-            </View>
-          }
-          renderItem={({ item }) => (
-            <OccurrenceCard 
-              occurrence={item} 
-              size={viewMode}
-              onPress={handlePressOccurrence}
-              onLongPress={handleLongPress}
-              selectable={isSelectionMode}
-              selected={selectedIds.includes(item.id)}
-            />
-          )}
-        />
+        {loading && !refreshing ? (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color={CustomColors.primary} />
+          </View>
+        ) : (
+          <FlatList
+            key={viewMode}
+            data={filteredOccurrences}
+            keyExtractor={(item) => item.id}
+            numColumns={viewMode === 'small' ? 2 : 1}
+            columnWrapperStyle={viewMode === 'small' ? { gap: 16 } : undefined}
+            contentContainerStyle={styles.listContent}
+            ListHeaderComponent={renderHeader}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor={CustomColors.primary}
+                colors={[CustomColors.primary]}
+              />
+            }
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <ShieldAlert size={48} color={CustomColors.grayScaleDark} />
+                <Text style={styles.emptyText}>Nenhuma ocorrência encontrada.</Text>
+              </View>
+            }
+            renderItem={({ item }) => (
+              <OccurrenceCard 
+                occurrence={item} 
+                size={viewMode}
+                onPress={handlePressOccurrence}
+                onLongPress={handleLongPress}
+                selectable={isSelectionMode}
+                selected={selectedIds.includes(item.id)}
+              />
+            )}
+          />
+        )}
       </View>
 
       {/* Overlay de Loading do Deep Link */}
@@ -337,7 +299,7 @@ export default function OccurrencesScreen() {
         onClose={() => setIsFilterModalVisible(false)}
         onApply={applyFilters}
         initialFilters={filterState}
-        cameras={MOCK_CAMERAS}
+        cameras={cameras}
       />
 
       <OccurrenceModal 

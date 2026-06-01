@@ -20,8 +20,8 @@ export interface ICamera {
   updated_at: string;
   
   user?: IUser;
+  roi_points?: any;
   alarms?: IAlarm[];
   alarm_groups?: IAlarmGroup[];
-  detection_zones?: IDetectionZone[];
   ocurrences?: IOcurrence[];
 }

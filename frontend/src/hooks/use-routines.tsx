@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Alert } from 'react-native';
 import { useFocusEffect } from 'expo-router';
+import Toast from 'react-native-toast-message';
 import { supabase } from '../services/supabase';
 import {
   getRoutines,
@@ -36,7 +36,6 @@ export function useRoutines() {
 
     // Recarrega quando qualquer rotina do usuário for criada/alterada/removida
     const channelId = `routines-realtime-${Date.now()}-${Math.random()}`;
-    console.log(channelId)
     const channel = supabase
       .channel(channelId)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'routines' }, () => {
@@ -69,7 +68,7 @@ export function useRoutines() {
       await updateRoutine(id, { is_active: !routine.is_active });
     } catch (error) {
       console.error('Erro ao alternar status da rotina:', error);
-      Alert.alert('Erro', 'Não foi possível alterar o status da rotina.');
+      Toast.show({ type: 'error', text1: 'Erro', text2: 'Não foi possível alterar o status da rotina.' });
       refresh(); // Desfaz em caso de erro
     }
   }, [routines, refresh]);
@@ -94,9 +93,10 @@ export function useRoutines() {
         });
         refresh(); // Atualiza a lista imediatamente após criar
       }
+      Toast.show({ type: 'success', text1: 'Sucesso', text2: 'Rotina salva com sucesso!' });
     } catch (error) {
       console.error('Erro ao salvar rotina:', error);
-      Alert.alert('Erro', 'Não foi possível salvar a rotina.');
+      Toast.show({ type: 'error', text1: 'Erro', text2: 'Não foi possível salvar a rotina.' });
       refresh();
     }
   }, [refresh]);
@@ -107,9 +107,10 @@ export function useRoutines() {
       // Otimista
       setRoutines((prev) => prev.filter((r) => r.id !== id));
       await deleteRoutine(id);
+      Toast.show({ type: 'success', text1: 'Sucesso', text2: 'Rotina excluída.' });
     } catch (error) {
       console.error('Erro ao excluir rotina:', error);
-      Alert.alert('Erro', 'Não foi possível excluir a rotina.');
+      Toast.show({ type: 'error', text1: 'Erro', text2: 'Não foi possível excluir a rotina.' });
       refresh();
     }
   }, [refresh]);

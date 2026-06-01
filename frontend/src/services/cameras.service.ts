@@ -19,13 +19,28 @@ export async function getCameras(): Promise<ICamera[]> {
 
     const { data, error } = await supabase
       .from('cameras')
-      .select('*')
+      .select('*, detection_zones(*)')
       .eq('user_id', user.id)
       .eq('is_active', true)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data as ICamera[];
+    
+    // Supabase retorna objeto único (1:1) ou array dependendo da FK. Vamos tratar ambos:
+    return data.map((d: any) => {
+      let roi = undefined;
+      if (d.detection_zones) {
+        if (Array.isArray(d.detection_zones)) {
+          roi = d.detection_zones.length > 0 ? d.detection_zones[0].roi_points : undefined;
+        } else {
+          roi = d.detection_zones.roi_points;
+        }
+      }
+      return {
+        ...d,
+        roi_points: roi
+      };
+    }) as ICamera[];
   } catch (err) {
     console.error('getCameras:', err);
     throw err;
