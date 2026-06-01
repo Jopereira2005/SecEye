@@ -90,16 +90,16 @@ export function useDevices() {
         }
 
         await updateCamera(payload.id, {
-          name: payload.name,
-          description: payload.description,
-          severity: payload.severity,
-          rtsp_url: payload.rtsp_url,
+          name: payload.name || '',
+          description: payload.description || undefined,
+          severity: payload.severity || undefined,
+          rtsp_url: payload.rtsp_url || '',
         });
       } else {
         // Cria
         const novaCamera = await createCamera({
           name: payload.name || 'Nova Câmera',
-          description: payload.description,
+          description: payload.description || undefined,
           severity: payload.severity || 'low',
           rtsp_url: payload.rtsp_url || '',
         });

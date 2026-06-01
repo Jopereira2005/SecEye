@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, PressableProps, ActivityIndicator, View, ViewStyle, StyleSheet, ColorValue } from 'react-native';
+import { Pressable, PressableProps, ActivityIndicator, View, ViewStyle, StyleProp, StyleSheet, ColorValue } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { CustomColors } from '@/constants/theme';
@@ -19,8 +19,8 @@ export interface ButtonProps extends Omit<PressableProps, 'style'> {
   gradientColors?: readonly [ColorValue, ColorValue, ...ColorValue[]];
   gradientStart?: { x: number; y: number };
   gradientEnd?: { x: number; y: number };
-  containerStyle?: ViewStyle;
-  style?: ViewStyle;
+  containerStyle?: StyleProp<ViewStyle>;
+  style?: StyleProp<ViewStyle>;
   children: React.ReactNode;
 }
 
