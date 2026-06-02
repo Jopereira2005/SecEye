@@ -43,13 +43,14 @@ def hora_permitida(schedule):
     Suporta intervalos que cruzam a meia-noite (ex.: 22:00 → 06:00).
     """
     if not schedule:
-        return True
+        return False
 
     if not isinstance(schedule, list) or len(schedule) == 0:
-        return True
+        return False
 
     now        = datetime.now()
-    dia_semana = now.weekday()
+    dia_semana_py = now.weekday()
+    dia_semana = (dia_semana_py + 1) % 7
     hora_atual = now.strftime("%H:%M")
     data_hoje  = now.strftime("%Y-%m-%d")
 

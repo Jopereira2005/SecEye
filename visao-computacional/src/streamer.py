@@ -48,8 +48,8 @@ def generate_frames(camera_id: str):
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
                
-        # Controla o FPS do stream (ex: ~15 fps para não sobrecarregar a rede local)
-        time.sleep(1 / 15.0)
+        # Controla o FPS maximo do stream (aumentado para 30 fps após otimização)
+        time.sleep(1 / 30.0)
 
 @app.route('/feed/<camera_id>')
 def video_feed(camera_id):

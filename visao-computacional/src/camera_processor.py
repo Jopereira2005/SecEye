@@ -13,6 +13,86 @@ from .rtsp import abrir_rtsp
 from .supabase_ops import atualizar_status_async, set_camera_offline, set_camera_online
 from .utils import hora_permitida, ponto_dentro_roi
 from .webhooks import enviar_trigger_ifttt
+import threading
+
+class VideoCaptureAsync:
+    def __init__(self, cap):
+        self.cap = cap
+        self.ret, self.frame = self.cap.read()
+        self.running = True
+        self.t = threading.Thread(target=self.update, daemon=True)
+        self.t.start()
+
+    def update(self):
+        while self.running:
+            if not self.cap or not self.cap.isOpened():
+                self.running = False
+                break
+            self.ret, self.frame = self.cap.read()
+            if not self.ret:
+                time.sleep(0.1)
+
+    def read(self):
+        if self.frame is not None:
+            return self.ret, self.frame.copy()
+        return self.ret, None
+
+    def release(self):
+        self.running = False
+        self.t.join(timeout=1.0)
+        if self.cap:
+            self.cap.release()
+
+    def isOpened(self):
+        return self.cap and self.cap.isOpened()
+
+class StreamManager:
+    _lock = threading.Lock()
+    _streams = {}
+
+    @classmethod
+    def get_stream(cls, camera_config):
+        url = camera_config.get("rtsp_url")
+        if isinstance(url, str) and url.isdigit():
+            url = int(url)
+
+        with cls._lock:
+            if url in cls._streams:
+                info = cls._streams[url]
+                if info['cap'].isOpened():
+                    info['refs'] += 1
+                    print(f">> [STREAM MANAGER] Compartilhando conexao para '{url}'. Referencias: {info['refs']}")
+                    return info['cap']
+                else:
+                    del cls._streams[url]
+
+            raw_cap = abrir_rtsp(camera_config)
+            if not raw_cap:
+                return None
+
+            cap = VideoCaptureAsync(raw_cap)
+            cls._streams[url] = {'cap': cap, 'refs': 1}
+            print(f">> [STREAM MANAGER] Nova conexao criada para '{url}'")
+            return cap
+
+    @classmethod
+    def release_stream(cls, camera_config, cap):
+        url = camera_config.get("rtsp_url")
+        if isinstance(url, str) and url.isdigit():
+            url = int(url)
+
+        with cls._lock:
+            if url in cls._streams and cls._streams[url]['cap'] is cap:
+                cls._streams[url]['refs'] -= 1
+                refs = cls._streams[url]['refs']
+                if refs <= 0:
+                    print(f">> [STREAM MANAGER] Fechando conexao de '{url}' (0 referencias)")
+                    cap.release()
+                    del cls._streams[url]
+                else:
+                    print(f">> [STREAM MANAGER] Soltando referencia de '{url}'. Restam: {refs}")
+            else:
+                cap.release()
 
 
 def _normalizar_roi(roi_points, w, h):
@@ -66,6 +146,8 @@ def processar_camera_thread(camera_id, camera_config):
         last_keepalive_check = time.time()
         last_schedule_check = None
         last_roi_check = None
+        last_person_boxes = []
+        pessoa_detectada_cache = False
 
         schedule_inicial = camera_config.get("schedule") or []
         hora_inicial_ok = hora_permitida(schedule_inicial)
@@ -76,7 +158,7 @@ def processar_camera_thread(camera_id, camera_config):
         state.camera_startup_semaphore.release()
 
     try:
-        cap = abrir_rtsp(camera_config)
+        cap = StreamManager.get_stream(camera_config)
         if cap is None:
             print(f">> [THREAD]   Falha ao abrir camera {camera_config['nome']}")
             set_camera_offline(cam_id, camera_config['nome'], reason="startup_failure")
@@ -141,7 +223,9 @@ def processar_camera_thread(camera_id, camera_config):
                                 print(">> Tentando reconectar...")
                                 print(f"{'='*70}\n")
 
-                                cap = abrir_rtsp(camera)
+                                if cap:
+                                    StreamManager.release_stream(camera, cap)
+                                cap = StreamManager.get_stream(camera)
                                 if cap:
                                     last_known_status = "online"
                                     print(f">> [THREAD]   {camera['nome']}: Reconectado (pausada) e marcado como ONLINE")
@@ -158,8 +242,8 @@ def processar_camera_thread(camera_id, camera_config):
                             print(f">> [THREAD]   {camera['nome']}: Erro ao verificar conexao (pausada): {e}")
                             try:
                                 if cap:
-                                    cap.release()
-                                cap = abrir_rtsp(camera)
+                                    StreamManager.release_stream(camera, cap)
+                                cap = StreamManager.get_stream(camera)
                                 if cap and last_known_status == "offline":
                                     last_known_status = "online"
                                     print(f">> [THREAD]   {camera['nome']}: Reconectado apos erro (pausada)")
@@ -190,7 +274,9 @@ def processar_camera_thread(camera_id, camera_config):
                     print(f">> [THREAD]   Stream fechado para {camera['nome']}, tentando reconectar...")
                     if set_camera_offline(cam_id, camera['nome'], reason="stream_closed"):
                         last_known_status = "offline"
-                    cap = abrir_rtsp(camera)
+                    if cap:
+                        StreamManager.release_stream(camera, cap)
+                    cap = StreamManager.get_stream(camera)
                     if cap:
                         last_known_status = "online"
                         print(f">> [THREAD]   {camera['nome']}: Reconectado e marcado como ONLINE")
@@ -199,11 +285,14 @@ def processar_camera_thread(camera_id, camera_config):
                         continue
 
                 # Ler frame
+                t_start_read = time.time()
                 try:
                     ok, frame = cap.read()
                 except Exception as e:
                     print(f">> [THREAD]   Erro ao ler frame {camera['nome']}: {e}")
                     ok, frame = False, None
+                
+                t_read = time.time() - t_start_read
 
                 if not ok or frame is None:
                     read_attempts += 1
@@ -227,7 +316,8 @@ def processar_camera_thread(camera_id, camera_config):
                         try:
                             cap.release()
                             time.sleep(2)
-                            cap = abrir_rtsp(camera)
+                            raw_cap = abrir_rtsp(camera)
+                            cap = VideoCaptureAsync(raw_cap) if raw_cap else None
                             if cap:
                                 read_attempts = 0
                                 last_known_status = "online"
@@ -276,9 +366,10 @@ def processar_camera_thread(camera_id, camera_config):
                         # Desenha a ROI mesmo pausada
                         roi_points = camera.get("roi_points")
                         if roi_points:
-                            roi = _normalizar_roi(roi_points, frame.shape[1], frame.shape[0])
-                            if roi is not None:
-                                cv2.polylines(frame_paused, [roi], isClosed=True, color=(255, 0, 0), thickness=2)
+                            roi_list = _normalizar_roi(roi_points, frame.shape[1], frame.shape[0])
+                            if roi_list is not None:
+                                roi_np = np.array(roi_list, dtype=np.int32)
+                                cv2.polylines(frame_paused, [roi_np], isClosed=True, color=(255, 0, 0), thickness=2)
 
                         frame_mjpeg = cv2.resize(frame_paused, (640, 360))
                         ret, buffer = cv2.imencode('.jpg', frame_mjpeg, [int(cv2.IMWRITE_JPEG_QUALITY), 60])
@@ -292,23 +383,6 @@ def processar_camera_thread(camera_id, camera_config):
                     time.sleep(1.0 / config.FPS_LIMIT)
                     continue
 
-                # FPS / process_every (usa process_every da câmera se configurado)
-                process_every = camera.get('process_every') or config.PROCESS_EVERY
-                if frame_count % process_every != 0:
-                    time.sleep(1.0 / config.FPS_LIMIT)
-                    continue
-
-                # YOLO inference (usa min_confidence da câmera se configurado)
-                min_conf = camera.get('min_confidence') or config.MIN_CONFIDENCE
-                results = state.model.predict(
-                    frame,
-                    classes=[0],
-                    conf=min_conf,
-                    verbose=False,
-                    device=0 if state.device == "cuda:0" else "cpu",
-                    amp=True
-                )
-
                 # ROI
                 roi_points = camera.get("roi_points")
                 roi_str = json.dumps(roi_points, sort_keys=True) if roi_points else ""
@@ -318,7 +392,6 @@ def processar_camera_thread(camera_id, camera_config):
                     last_roi_check = roi_str
 
                 h, w = frame.shape[:2]
-
                 try:
                     roi_points = _normalizar_roi(roi_points, w, h)
                 except Exception as e:
@@ -328,33 +401,55 @@ def processar_camera_thread(camera_id, camera_config):
 
                 if not roi_points or len(roi_points) < 3:
                     roi_points = [[0, 0], [w, 0], [w, h], [0, h]]
-
                 roi = np.array(roi_points, dtype=np.int32)
 
-                pessoa_detectada = False
+                t_start_ia = time.time()
+                
+                # YOLO Inference and Box drawing (Frame skip logic here)
+                process_every = camera.get('process_every') or config.PROCESS_EVERY
+                if frame_count % process_every == 0:
+                    min_conf = camera.get('min_confidence') or config.MIN_CONFIDENCE
+                    results = state.model.predict(
+                        frame,
+                        classes=[0],
+                        conf=min_conf,
+                        imgsz=640,
+                        half=(state.device == "cuda:0"),
+                        verbose=False,
+                        device=0 if state.device == "cuda:0" else "cpu"
+                    )
 
-                for r in results:
-                    for box in r.boxes:
-                        coords = box.xyxy[0]
-                        x1 = int(float(coords[0]))
-                        y1 = int(float(coords[1]))
-                        x2 = int(float(coords[2]))
-                        y2 = int(float(coords[3]))
-                        cx = int((x1 + x2) / 2)
-                        cy = int((y1 + y2) / 2)
+                    pessoa_detectada_cache = False
+                    last_person_boxes = []
 
-                        if ponto_dentro_roi(cx, cy, roi):
-                            pessoa_detectada = True
-                            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
-                            cv2.putText(frame, "suspeito", (x1, y1-10),
-                                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+                    for r in results:
+                        for box in r.boxes:
+                            coords = box.xyxy[0]
+                            x1, y1, x2, y2 = int(float(coords[0])), int(float(coords[1])), int(float(coords[2])), int(float(coords[3]))
+                            cx = int((x1 + x2) / 2)
+                            cy = int((y1 + y2) / 2)
+
+                            if ponto_dentro_roi(cx, cy, roi):
+                                pessoa_detectada_cache = True
+                                last_person_boxes.append((x1, y1, x2, y2))
+                                
+                t_ia = time.time() - t_start_ia
+
+                t_start_ui = time.time()
+                # Sempre desenha as ultimas deteccoes para o MJPEG
+                for (x1, y1, x2, y2) in last_person_boxes:
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
+                    cv2.putText(frame, "suspeito", (x1, y1-10),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
                 cv2.polylines(frame, [roi], isClosed=True, color=(255, 0, 0), thickness=3)
+                
+                pessoa_detectada = pessoa_detectada_cache
 
-                # Grava no state para o servidor MJPEG do App
+                # Grava no state para o servidor MJPEG do App (otimizado)
                 try:
-                    frame_mjpeg = cv2.resize(frame, (640, 360))
-                    ret, buffer = cv2.imencode('.jpg', frame_mjpeg, [int(cv2.IMWRITE_JPEG_QUALITY), 60])
+                    frame_mjpeg = cv2.resize(frame, (480, 270), interpolation=cv2.INTER_LINEAR)
+                    ret, buffer = cv2.imencode('.jpg', frame_mjpeg, [int(cv2.IMWRITE_JPEG_QUALITY), 40])
                     if ret:
                         with state.latest_frames_lock:
                             state.latest_frames[cam_id] = buffer.tobytes()
@@ -371,6 +466,9 @@ def processar_camera_thread(camera_id, camera_config):
                     except Exception as e:
                         if frame_count % 100 == 1:
                             print(f">> [THREAD]   Erro visualizacao {camera['nome']}: {e} (continuando...)")
+                            
+                t_ui = time.time() - t_start_ui
+                t_start_net = time.time()
 
                 if pessoa_detectada:
                     schedule_check = camera.get("schedule") or []
@@ -390,6 +488,12 @@ def processar_camera_thread(camera_id, camera_config):
                         state.ultimo_envio[cam_id] = time.time()
                         enviar_trigger_ifttt(camera)
                         enviar_evento(frame, camera)
+                        
+                t_net = time.time() - t_start_net
+
+                # Imprime o Profiler a cada 50 frames para nao poluir o terminal
+                if frame_count % 50 == 0:
+                    print(f">> [PROFILER] {camera['nome']} | Leitura: {int(t_read*1000)}ms | IA: {int(t_ia*1000)}ms | UI: {int(t_ui*1000)}ms | Rede: {int(t_net*1000)}ms")
 
                 time.sleep(1.0 / config.FPS_LIMIT)
 
@@ -407,7 +511,7 @@ def processar_camera_thread(camera_id, camera_config):
         state.camera_paused_by_schedule[cam_id] = False
         if cap:
             try:
-                cap.release()
+                StreamManager.release_stream(camera_config, cap)
             except Exception:
                 pass
         if config.SHOW_FRAMES:

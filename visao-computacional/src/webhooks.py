@@ -4,7 +4,11 @@ from datetime import datetime, timezone
 
 import requests
 
+from concurrent.futures import ThreadPoolExecutor
+
 from . import config, state
+
+http_executor = ThreadPoolExecutor(max_workers=5)
 
 
 def enviar_trigger_ifttt(camera):
@@ -52,7 +56,7 @@ def enviar_trigger_ifttt(camera):
         except Exception as e:
             print(f"   [FAIL] ERRO geral no trigger: {e}", flush=True)
 
-    threading.Thread(target=_enviar_async, daemon=True).start()
+    http_executor.submit(_enviar_async)
 
 
 def enviar_webhook_erro(camera_id, camera_data, status="offline"):
