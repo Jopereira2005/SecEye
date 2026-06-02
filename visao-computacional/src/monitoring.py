@@ -72,6 +72,12 @@ def watchdog_thread():
 
                 camera = state.camera_configs.get(cam_id)
                 if camera:
+                    try:
+                        from .camera_processor import StreamManager
+                        StreamManager.force_purge(camera)
+                    except Exception as e:
+                        print(f">> [WATCHDOG] Erro no purge: {e}")
+
                     state.camera_restart_count[cam_id] = restarts + 1
                     thread = threading.Thread(
                         target=processar_camera_thread,

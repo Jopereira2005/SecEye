@@ -57,7 +57,7 @@ export function CameraViewerModal({ visible, onClose, camera }: CameraViewerModa
               <Animated.View style={[styles.liveDot, animatedLiveDot]} />
               <Text style={styles.liveText}>AO VIVO</Text>
             </View>
-            <Text style={styles.title}>{camera.name}</Text>
+            <Text style={styles.title} numberOfLines={1}>{camera.name}</Text>
           </View>
 
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>

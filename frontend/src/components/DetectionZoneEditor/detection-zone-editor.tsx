@@ -4,6 +4,7 @@ import { Svg, Polygon, Line, Circle } from 'react-native-svg';
 import { CustomColors, CustomFonts, Spacing } from '@/constants/theme';
 import { moderateScale } from 'react-native-size-matters';
 import { MjpegPlayer } from '../MjpegPlayer/mjpeg-player';
+import { VideoOff } from 'lucide-react-native';
 
 interface Point {
   x: number;
@@ -137,11 +138,9 @@ export function DetectionZoneEditor({ imageSource, videoUrl, initialPoints, onCh
             resizeMode="stretch"
           />
         ) : (
-          <Image 
-            source={imageSource} 
-            style={styles.image} 
-            resizeMode="stretch"
-          />
+          <View style={[styles.image, { justifyContent: 'center', alignItems: 'center', backgroundColor: CustomColors.grayScaleDark }]}>
+            <VideoOff size={48} color={CustomColors.grayScale} opacity={0.5} />
+          </View>
         )}
 
         {layout.width > 0 && layout.height > 0 && (

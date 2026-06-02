@@ -39,6 +39,8 @@ export const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    marginRight: Spacing.sm,
   },
   titleIcon: {
     marginRight: Spacing.sm,
@@ -48,6 +50,7 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: moderateScale(20),
     color: CustomColors.light,
+    flexShrink: 1,
   },
   closeButton: {
     padding: Spacing.xs,

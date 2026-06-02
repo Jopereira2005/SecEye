@@ -181,7 +181,7 @@ export function DeviceModal({ visible, onClose, onSave, onDelete, device }: Devi
             <View style={styles.header}>
               <View style={styles.titleContainer}>
                 <Camera color={CustomColors.primary} size={24} style={styles.titleIcon} />
-                <Text style={styles.title}>{isEditing ? 'Editar Câmera' : 'Nova Câmera'}</Text>
+                <Text style={styles.title} numberOfLines={1}>{isEditing ? 'Editar Câmera' : 'Nova Câmera'}</Text>
               </View>
               <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
                 <X color={CustomColors.grayScale} size={24} />
@@ -230,7 +230,6 @@ export function DeviceModal({ visible, onClose, onSave, onDelete, device }: Devi
                 {/* Visualização da Zona Salva */}
                 <View style={{ marginTop: Spacing.sm, marginBottom: Spacing.md }}>
                   <DetectionZoneEditor 
-                    imageSource={require('../../../assets/images/mock-camera.png')}
                     videoUrl={videoUrl}
                     initialPoints={currentZonePoints}
                     readOnly={true}
@@ -319,7 +318,6 @@ export function DeviceModal({ visible, onClose, onSave, onDelete, device }: Devi
       <DetectionZoneModal
         visible={isZoneModalVisible}
         onClose={() => setIsZoneModalVisible(false)}
-        imageSource={require('../../../assets/images/mock-camera.png')}
         videoUrl={videoUrl}
         initialPoints={currentZonePoints}
         onConfirm={(points) => {

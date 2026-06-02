@@ -9,7 +9,7 @@ export const styles = StyleSheet.create({
   },
 
   scrollContent: {
-    paddingTop: 90,
+    paddingTop: Spacing.lg,
     paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing.xxl,
     gap: Spacing.xl,
@@ -19,7 +19,6 @@ export const styles = StyleSheet.create({
 
   avatarSection: {
     alignItems: 'center',
-    marginBottom: Spacing.lg,
   },
 
   avatarContainer: {
@@ -66,10 +65,6 @@ export const styles = StyleSheet.create({
 
   formSection: {
     gap: Spacing.xl,
-  },
-
-  inputsContainer: {
-    gap: Spacing.lg,
   },
 
   /* Buttons */

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { Camera, BellDot, Power, ShieldAlert, AlertTriangle, CheckCircle, Wifi, WifiOff } from 'lucide-react-native';
+import { Camera, BellDot, Power, ShieldAlert, AlertTriangle, CheckCircle, Wifi, WifiOff, VideoOff } from 'lucide-react-native';
 import { CustomColors } from '@/constants/theme';
 import { Button } from '@/components/Button/button';
 import { styles } from './device-card.styles';
@@ -99,11 +99,9 @@ export function DeviceCard({ type, device, onPress, onLongPress, onToggleStatus 
               resizeMode="stretch"
             />
           ) : (
-            <Image 
-              source={require('../../../assets/images/mock-camera.png')} 
-              style={styles.previewImage} 
-              resizeMode="stretch"
-            />
+            <View style={[styles.previewImage, { justifyContent: 'center', alignItems: 'center', backgroundColor: CustomColors.grayScaleDark }]}>
+              <VideoOff size={48} color={CustomColors.grayScale} opacity={0.5} />
+            </View>
           )}
         </View>
       )}

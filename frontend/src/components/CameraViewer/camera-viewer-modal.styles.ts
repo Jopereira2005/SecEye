@@ -27,12 +27,15 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
+    flex: 1,
+    marginRight: Spacing.sm,
   },
   title: {
     fontFamily: CustomFonts.inter,
     fontWeight: 'bold',
     fontSize: moderateScale(16),
     color: CustomColors.light,
+    flexShrink: 1,
   },
   liveBadge: {
     flexDirection: 'row',

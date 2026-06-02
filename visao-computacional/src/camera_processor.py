@@ -81,18 +81,46 @@ class StreamManager:
         if isinstance(url, str) and url.isdigit():
             url = int(url)
 
+        should_release = False
         with cls._lock:
             if url in cls._streams and cls._streams[url]['cap'] is cap:
                 cls._streams[url]['refs'] -= 1
                 refs = cls._streams[url]['refs']
                 if refs <= 0:
-                    print(f">> [STREAM MANAGER] Fechando conexao de '{url}' (0 referencias)")
-                    cap.release()
+                    print(f">> [STREAM MANAGER] Removendo conexao de '{url}' da memoria (0 referencias)")
+                    should_release = True
                     del cls._streams[url]
                 else:
                     print(f">> [STREAM MANAGER] Soltando referencia de '{url}'. Restam: {refs}")
             else:
+                should_release = True
+                
+        if should_release:
+            print(f">> [STREAM MANAGER] Fechando conexao fisicamente (fora do lock)...")
+            try:
                 cap.release()
+            except Exception:
+                pass
+
+    @classmethod
+    def force_purge(cls, camera_config):
+        """Força a destruição do stream compartilhado (usado quando a câmera trava)"""
+        url = camera_config.get("rtsp_url")
+        if isinstance(url, str) and url.isdigit():
+            url = int(url)
+
+        cap_to_release = None
+        with cls._lock:
+            if url in cls._streams:
+                print(f">> [STREAM MANAGER] PURGE FORCADO da conexao '{url}' (Camera travou!)")
+                cap_to_release = cls._streams[url]['cap']
+                del cls._streams[url]
+                
+        if cap_to_release:
+            try:
+                cap_to_release.release()
+            except Exception:
+                pass
 
 
 def _normalizar_roi(roi_points, w, h):
@@ -516,7 +544,7 @@ def processar_camera_thread(camera_id, camera_config):
                 pass
         if config.SHOW_FRAMES:
             try:
-                cv2.destroyAllWindows()
+                cv2.destroyWindow(camera_config['nome'])
             except Exception:
                 pass
 
