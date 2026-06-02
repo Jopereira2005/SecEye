@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 
 import { Button } from '@/components/Button/button';
 import { OccurrenceCard } from '@/components/OccurrenceCard/occurrence-card';
-import { styles } from './_home-screen.styles';
+import { styles } from './home-screen.styles';
 import { CustomColors, Spacing } from '@/constants/theme';
 import { useRoutines } from '@/hooks/use-routines';
 import { useOccurrences } from '@/hooks/use-occurrences';

@@ -15,7 +15,7 @@ import { Image } from 'expo-image';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-import { styles } from './_profile-screen.styles';
+import { styles } from './profile-screen.styles';
 import { Input } from '@/components/Input/input';
 import { Button } from '@/components/Button/button';
 import { useAuth } from '@/contexts/auth.context';

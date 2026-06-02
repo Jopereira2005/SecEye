@@ -6,7 +6,7 @@ import { Button } from "@/components/Button/button";
 import { RoutineCard } from "@/components/RoutineCard/routine-card";
 import { RoutineModal } from "@/components/RoutineModal/routine-modal";
 import { RoutineFilterModal, IRoutineFilterState, INITIAL_ROUTINE_FILTER_STATE } from "@/components/RoutineFilterModal/routine-filter-modal";
-import { styles } from "./_routine-screen.styles";
+import { styles } from "./routine-screen.styles";
 import { CustomColors } from "@/constants/theme";
 import { IRoutine } from "@/interfaces/routine.interface";
 import { useRoutines } from "@/hooks/use-routines";

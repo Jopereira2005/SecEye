@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Camera, BellDot, PlusCircle, PenTool } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
-import { styles } from './_devices-screen.styles';
+import { styles } from './devices-screen.styles';
 import { CustomColors } from '@/constants/theme';
 import { Button } from '@/components/Button/button';
 import { DeviceCard } from '@/components/DeviceCard/device-card';

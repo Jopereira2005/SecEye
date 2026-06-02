@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { Image } from 'expo-image';
-import { styles } from './_logo.styles';
+import { styles } from './logo.styles';
 
 export function Logo() {
   return (

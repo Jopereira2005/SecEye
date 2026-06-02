@@ -5,7 +5,7 @@ import { OccurrenceCard } from "@/components/OccurrenceCard/occurrence-card";
 import { OccurrenceModal } from "@/components/OccurrenceModal/occurrence-modal";
 import { OccurrenceFilterModal, IFilterState, INITIAL_FILTER_STATE } from "@/components/OccurrenceFilterModal/occurrence-filter-modal";
 import { Button } from "@/components/Button/button";
-import { styles } from "./_occurrences-screen.styles";
+import { styles } from "./occurrences-screen.styles";
 import { CustomColors, Spacing } from "@/constants/theme";
 import { IOcurrence } from "@/interfaces/ocurrence.interface";
 import { ICamera } from "@/interfaces/camera.interface";
