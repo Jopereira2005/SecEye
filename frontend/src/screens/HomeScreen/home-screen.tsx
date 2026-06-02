@@ -12,6 +12,7 @@ import { CustomColors, Spacing } from '@/constants/theme';
 import { useRoutines } from '@/hooks/use-routines';
 import { useOccurrences } from '@/hooks/use-occurrences';
 import { useAuth } from '@/contexts/auth.context';
+import { useDevices } from '@/hooks/use-devices';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -21,7 +22,11 @@ export function HomeScreen() {
   const router = useRouter();
   const { isSystemActive, activeRoutines } = useRoutines();
   const { occurrences } = useOccurrences();
+  const { devices } = useDevices();
   const { profile } = useAuth();
+
+  const hasActiveCamera = devices.some(d => d.is_active);
+  const showSystemActive = isSystemActive && hasActiveCamera;
 
   const [statFilter, setStatFilter] = React.useState<StatFilter>('today');
 
@@ -93,7 +98,7 @@ export function HomeScreen() {
               Olá, <Text style={styles.nameText}>{profile?.first_name ? profile.first_name.toUpperCase() : 'USUÁRIO'}</Text>
             </Text>
             <Text style={styles.statusText}>
-              {isSystemActive 
+              {showSystemActive 
                 ? 'O sistema está monitorando ativamente.' 
                 : 'O sistema está operando em modo de espera.'}
             </Text>
@@ -101,7 +106,7 @@ export function HomeScreen() {
         </View>
 
         <Button 
-          variant={isSystemActive ? "gradient" : "secondary"}
+          variant={showSystemActive ? "gradient" : "secondary"}
           size="large"
           containerStyle={{ marginBottom: Spacing.lg }}
           disabled={false} // Mantém sem efeito de opacidade de disabled
@@ -110,9 +115,9 @@ export function HomeScreen() {
           <View style={styles.shieldIconContainer}>
             <Shield color={CustomColors.light} size={32} fill={CustomColors.light} />
           </View>
-          <Text style={styles.mainCardTitle}>{isSystemActive ? 'SISTEMA ATIVO' : 'SISTEMA INATIVO'}</Text>
-          <View style={[styles.badge, { backgroundColor: isSystemActive ? CustomColors.applyOpacity(CustomColors.light, 0.2) : CustomColors.applyOpacity(CustomColors.grayScale, 0.2) }]}>
-            <Text style={styles.badgeText}>{isSystemActive ? 'MONITORANDO' : 'EM ESPERA'}</Text>
+          <Text style={styles.mainCardTitle}>{showSystemActive ? 'SISTEMA ATIVO' : 'SISTEMA INATIVO'}</Text>
+          <View style={[styles.badge, { backgroundColor: showSystemActive ? CustomColors.applyOpacity(CustomColors.light, 0.2) : CustomColors.applyOpacity(CustomColors.grayScale, 0.2) }]}>
+            <Text style={styles.badgeText}>{showSystemActive ? 'MONITORANDO' : 'EM ESPERA'}</Text>
           </View>
         </Button>
 
