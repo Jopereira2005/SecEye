@@ -14,20 +14,21 @@ type CreateCameraPayload = {
 
 export async function getCameras(): Promise<ICamera[]> {
   try {
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { data: { session }, error: authError } = await supabase.auth.getSession();
+    const user = session?.user;
     if (authError || !user) throw new Error('Usuário não autenticado');
 
     const { data, error } = await supabase
       .from('cameras')
       .select('*, detection_zones(*)')
       .eq('user_id', user.id)
-      .eq('is_active', true)
+      .neq('rtsp_url', 'deleted')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
     
     // Supabase retorna objeto único (1:1) ou array dependendo da FK. Vamos tratar ambos:
-    return data.map((d: any) => {
+    return (data || []).map((d: any) => {
       let roi = undefined;
       if (d.detection_zones) {
         if (Array.isArray(d.detection_zones)) {
@@ -65,7 +66,8 @@ export async function getCamera(id: string): Promise<ICamera> {
 
 export async function createCamera(payload: CreateCameraPayload): Promise<ICamera> {
   try {
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { data: { session }, error: authError } = await supabase.auth.getSession();
+    const user = session?.user;
     if (authError || !user) throw new Error('Usuário não autenticado');
 
     const { data, error } = await supabase
@@ -103,7 +105,7 @@ export async function deleteCamera(id: string): Promise<void> {
   try {
     const { error } = await supabase
       .from('cameras')
-      .update({ is_active: false, updated_at: new Date().toISOString() })
+      .update({ rtsp_url: 'deleted', is_active: false })
       .eq('id', id);
 
     if (error) throw error;

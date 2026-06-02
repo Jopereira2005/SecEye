@@ -15,7 +15,7 @@ import { Image } from 'expo-image';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-import { styles } from './_profile.styles';
+import { styles } from './_profile-screen.styles';
 import { Input } from '@/components/Input/input';
 import { Button } from '@/components/Button/button';
 import { useAuth } from '@/contexts/auth.context';
@@ -23,7 +23,7 @@ import { updateProfile, uploadAvatar } from '@/services/user.service';
 import { CustomColors } from '@/constants/theme';
 import Toast from 'react-native-toast-message';
 
-export default function ProfileScreen() {
+export function ProfileScreen() {
   const router = useRouter();
   const { profile, signOut, refreshProfile } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -142,7 +142,7 @@ export default function ProfileScreen() {
         Toast.show({ type: 'error', text1: 'Erro', text2: error.message || 'Erro ao sair.' });
         return;
       }
-      router.replace('/auth' as any);
+      // RouteGuard will automatically handle the redirection when session is cleared
     } finally {
       setLoading(false);
     }

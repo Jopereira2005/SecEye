@@ -25,14 +25,38 @@ export async function getDetectionZone(cameraId: string): Promise<IDetectionZone
 
 export async function upsertDetectionZone(payload: UpsertDetectionZonePayload): Promise<IDetectionZone> {
   try {
-    const { data, error } = await supabase
+    // Check if zone already exists for this camera
+    const { data: existing, error: checkError } = await supabase
       .from('detection_zones')
-      .upsert(payload, { onConflict: 'camera_id' })
-      .select()
-      .single();
+      .select('id')
+      .eq('camera_id', payload.camera_id)
+      .maybeSingle();
 
-    if (error) throw error;
-    return data as IDetectionZone;
+    if (checkError) throw checkError;
+
+    let result;
+    if (existing && existing.id) {
+      // Update
+      const { data, error } = await supabase
+        .from('detection_zones')
+        .update(payload)
+        .eq('id', existing.id)
+        .select()
+        .single();
+      if (error) throw error;
+      result = data;
+    } else {
+      // Insert
+      const { data, error } = await supabase
+        .from('detection_zones')
+        .insert(payload)
+        .select()
+        .single();
+      if (error) throw error;
+      result = data;
+    }
+
+    return result as IDetectionZone;
   } catch (err) {
     console.error('upsertDetectionZone:', err);
     throw err;

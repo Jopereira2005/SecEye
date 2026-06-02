@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Camera, BellDot, PlusCircle, PenTool } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
-import { styles } from './_devices.styles';
+import { styles } from './_devices-screen.styles';
 import { CustomColors } from '@/constants/theme';
 import { Button } from '@/components/Button/button';
 import { DeviceCard } from '@/components/DeviceCard/device-card';
@@ -13,7 +13,7 @@ import { ICamera } from '@/interfaces/camera.interface';
 
 import { useDevices } from '@/hooks/use-devices';
 
-export default function DevicesScreen() {
+export function DevicesScreen() {
   const [activeTab, setActiveTab] = useState<'cameras' | 'alarms'>('cameras');
   
   const { devices: cameras, loading, saveDevice, removeDevice, toggleDeviceStatus } = useDevices();

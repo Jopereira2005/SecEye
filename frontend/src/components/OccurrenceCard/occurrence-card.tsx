@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import { Video, Clock, ShieldAlert, CheckCircle, AlertTriangle, Check } from 'lucide-react-native';
@@ -61,7 +61,7 @@ export interface OccurrenceCardProps {
   selected?: boolean;
 }
 
-export function OccurrenceCard({ 
+export const OccurrenceCard = memo(function OccurrenceCard({ 
   occurrence, 
   size = 'large', 
   onPress,
@@ -69,6 +69,7 @@ export function OccurrenceCard({
   selectable = false,
   selected = false
 }: OccurrenceCardProps) {
+  // Lógica de pulsação para alta severidade
   const scaleAnim = useSharedValue(1);
 
   const handlePressIn = () => {
@@ -248,4 +249,9 @@ export function OccurrenceCard({
       </Animated.View>
     </Pressable>
   );
-}
+}, (prevProps, nextProps) => {
+  return prevProps.occurrence.id === nextProps.occurrence.id 
+    && prevProps.selected === nextProps.selected 
+    && prevProps.selectable === nextProps.selectable
+    && prevProps.size === nextProps.size;
+});

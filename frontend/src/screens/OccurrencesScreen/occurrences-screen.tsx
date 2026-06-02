@@ -1,11 +1,11 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { View, Text, FlatList, RefreshControl, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { View, Text, RefreshControl, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { OccurrenceCard } from "@/components/OccurrenceCard/occurrence-card";
 import { OccurrenceModal } from "@/components/OccurrenceModal/occurrence-modal";
 import { OccurrenceFilterModal, IFilterState, INITIAL_FILTER_STATE } from "@/components/OccurrenceFilterModal/occurrence-filter-modal";
 import { Button } from "@/components/Button/button";
-import { styles } from "./_occurrences.styles";
+import { styles } from "./_occurrences-screen.styles";
 import { CustomColors, Spacing } from "@/constants/theme";
 import { IOcurrence } from "@/interfaces/ocurrence.interface";
 import { ICamera } from "@/interfaces/camera.interface";
@@ -14,7 +14,7 @@ import { ShieldAlert, LayoutList, Square, SlidersHorizontal, Grid2X2 } from "luc
 import { getCameras } from "@/services/cameras.service";
 import { useOccurrences } from "@/hooks/use-occurrences";
 
-export default function OccurrencesScreen() {
+export function OccurrencesScreen({ openId }: { openId?: string | string[] }) {
   const { occurrences, loading, refresh, removeOccurrences } = useOccurrences();
   const [cameras, setCameras] = useState<ICamera[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -29,23 +29,20 @@ export default function OccurrencesScreen() {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isFetchingDeepLink, setIsFetchingDeepLink] = useState(false);
-  
-  const params = useLocalSearchParams();
 
   useEffect(() => {
     // Carregar lista de câmeras ativas do usuário para os filtros
     getCameras().then(data => setCameras(data)).catch(err => console.error("Erro ao carregar câmeras", err));
   }, []);
 
-  // Escuta os parâmetros da rota para abrir o modal via deep link ou navegação
   useEffect(() => {
-    if (params.openId) {
+    if (openId && typeof openId === 'string') {
       const fetchDeepLink = async () => {
         setIsFetchingDeepLink(true);
         // Simula o delay de requisição para a API real
         await new Promise(resolve => setTimeout(resolve, 800));
         
-        const found = occurrences.find(o => o.id === params.openId);
+        const found = occurrences.find(o => o.id === openId);
         if (found) {
           setSelectedOccurrence(found);
           setIsModalVisible(true);
@@ -55,7 +52,7 @@ export default function OccurrencesScreen() {
 
       fetchDeepLink();
     }
-  }, [params.openId, params._t, occurrences]);
+  }, [openId, occurrences]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -125,14 +122,14 @@ export default function OccurrencesScreen() {
     }
   };
 
-  const handlePressOccurrence = (occurrence: IOcurrence) => {
+  const handlePressOccurrence = useCallback((occurrence: IOcurrence) => {
     if (isSelectionMode) {
       toggleSelection(occurrence.id);
     } else {
       setSelectedOccurrence(occurrence);
       setIsModalVisible(true);
     }
-  };
+  }, [isSelectionMode]);
 
   const cancelSelection = () => {
     setIsSelectionMode(false);
@@ -148,9 +145,10 @@ export default function OccurrencesScreen() {
         { 
           text: "Excluir", 
           style: "destructive",
-          onPress: async () => {
-            await removeOccurrences(selectedIds);
+          onPress: () => {
+            const idsToDelete = [...selectedIds];
             cancelSelection();
+            removeOccurrences(idsToDelete);
           }
         }
       ]
@@ -226,12 +224,13 @@ export default function OccurrencesScreen() {
             <ActivityIndicator size="large" color={CustomColors.primary} />
           </View>
         ) : (
-          <FlatList
+          <FlashList
             key={viewMode}
             data={filteredOccurrences}
             keyExtractor={(item) => item.id}
             numColumns={viewMode === 'small' ? 2 : 1}
-            columnWrapperStyle={viewMode === 'small' ? { gap: 16 } : undefined}
+            // @ts-ignore - Prop exists in FlashList but TS is complaining in v2
+            estimatedItemSize={250}
             contentContainerStyle={styles.listContent}
             ListHeaderComponent={renderHeader}
             showsVerticalScrollIndicator={false}
@@ -250,14 +249,16 @@ export default function OccurrencesScreen() {
               </View>
             }
             renderItem={({ item }) => (
-              <OccurrenceCard 
-                occurrence={item} 
-                size={viewMode}
-                onPress={handlePressOccurrence}
-                onLongPress={handleLongPress}
-                selectable={isSelectionMode}
-                selected={selectedIds.includes(item.id)}
-              />
+              <View style={viewMode === 'small' ? { flex: 1, padding: 8 } : undefined}>
+                <OccurrenceCard 
+                  occurrence={item} 
+                  size={viewMode}
+                  onPress={handlePressOccurrence}
+                  onLongPress={handleLongPress}
+                  selectable={isSelectionMode}
+                  selected={selectedIds.includes(item.id)}
+                />
+              </View>
             )}
           />
         )}

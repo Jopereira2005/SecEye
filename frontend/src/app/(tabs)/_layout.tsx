@@ -11,11 +11,11 @@ export default function TabLayout() {
         header: () => <Header />
       }}
     >
-      <Tabs.Screen name="home/index" options={{ title: 'Início' }} />
-      <Tabs.Screen name="routine/index" options={{ title: 'Rotina' }} />
-      <Tabs.Screen name="devices/index" options={{ title: 'Dispositivos' }} />
-      <Tabs.Screen name="occurrences/index" options={{ title: 'Ocorrências' }} />
-      <Tabs.Screen name="profile/index" options={{ title: 'Perfil' }} />
+      <Tabs.Screen name="home" options={{ title: 'Início' }} />
+      <Tabs.Screen name="routine" options={{ title: 'Rotina' }} />
+      <Tabs.Screen name="devices" options={{ title: 'Dispositivos' }} />
+      <Tabs.Screen name="occurrences" options={{ title: 'Ocorrências' }} />
+      <Tabs.Screen name="profile" options={{ title: 'Perfil' }} />
     </Tabs>
   );
 }

@@ -4,6 +4,7 @@ import type { AuthError, PostgrestError, Session, User as AuthUser } from '@supa
 import type { IUser } from '@/interfaces/user.interfaces';
 import { getProfile } from '@/services/user.service';
 import { getSession, onAuthStateChange, signIn, signOut, signUp } from '@/services/auth.service';
+import { useQueryClient } from '@tanstack/react-query';
 
 type SignInResult = ReturnType<typeof signIn>;
 type SignUpResult = ReturnType<typeof signUp>;
@@ -36,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | AuthError | PostgrestError | null>(null);
+  const queryClient = useQueryClient();
 
   const refreshProfile = useCallback(async () => {
     try {
@@ -153,6 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         setSession(null);
         setProfile(null);
+        queryClient.clear();
       } else {
         setError(result.error);
       }
@@ -160,7 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [queryClient]);
 
   const value = useMemo(
     () => ({

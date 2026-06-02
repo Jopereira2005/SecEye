@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, Keyboard, StyleSheet, Dimensions, Pressable, Image } from 'react-native';
-import { Camera, X, AlertTriangle, CheckCircle, ShieldAlert } from 'lucide-react-native';
+import { View, Text, Modal, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, Keyboard, StyleSheet, Dimensions, Pressable } from 'react-native';
+import { Camera, X, AlertTriangle, CheckCircle, ShieldAlert, Trash2 } from 'lucide-react-native';
 import { Button } from '@/components/Button/button';
 import { Input } from '@/components/Input/input';
 import { CustomColors, CustomFonts, Spacing } from '@/constants/theme';
@@ -297,7 +297,7 @@ export function DeviceModal({ visible, onClose, onSave, onDelete, device }: Devi
                 style={styles.deleteButton}
                 onPress={() => onDelete(device.id)}
               >
-                <AlertTriangle color="#FFF" size={20} />
+                <Trash2 color="#FFF" size={20} />
               </Button>
             ) : null}
             

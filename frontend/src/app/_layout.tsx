@@ -10,6 +10,18 @@ import { AuthProvider } from '@/contexts/auth.context';
 import { RouteGuard } from '@/components/RouteGuard/route-guard';
 import Toast from 'react-native-toast-message';
 import { toastConfig } from '@/components/Toast/toast-config';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+// Instância global do React Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      refetchOnWindowFocus: true,
+      staleTime: 1000 * 60 * 5, // 5 minutos de cache
+    },
+  },
+});
 
 // Silencia o warning de Strict Mode falso-positivo do Reanimated 3+
 configureReanimatedLogger({
@@ -37,13 +49,15 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar style="light" />
-      <AuthProvider>
-        <RouteGuard>
-          <Slot />
-        </RouteGuard>
-      </AuthProvider>
-      <Toast config={toastConfig} topOffset={60} />
+      <QueryClientProvider client={queryClient}>
+        <StatusBar style="light" />
+        <AuthProvider>
+          <RouteGuard>
+            <Slot />
+          </RouteGuard>
+        </AuthProvider>
+        <Toast config={toastConfig} topOffset={60} />
+      </QueryClientProvider>
     </GestureHandlerRootView>
   );
 }

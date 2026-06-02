@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 
 import { Button } from '@/components/Button/button';
 import { OccurrenceCard } from '@/components/OccurrenceCard/occurrence-card';
-import { styles } from './_home.styles';
+import { styles } from './_home-screen.styles';
 import { CustomColors, Spacing } from '@/constants/theme';
 import { useRoutines } from '@/hooks/use-routines';
 import { useOccurrences } from '@/hooks/use-occurrences';
@@ -17,7 +17,7 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 type StatFilter = 'today' | 'week' | 'month' | 'all';
 
-export default function Home() {
+export function HomeScreen() {
   const router = useRouter();
   const { isSystemActive, activeRoutines } = useRoutines();
   const { occurrences } = useOccurrences();
@@ -46,7 +46,7 @@ export default function Home() {
     else setStatFilter('today');
   };
 
-  const getFilteredOccurrencesCount = () => {
+  const filteredOccurrencesCount = React.useMemo(() => {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
 
@@ -67,7 +67,7 @@ export default function Home() {
       }
       return true; // para 'all'
     }).length;
-  };
+  }, [occurrences, statFilter]);
 
   const statLabels = {
     today: 'HOJE',
@@ -131,7 +131,7 @@ export default function Home() {
             </View>
             <View style={styles.statTextContainer}>
               <Text style={styles.statCount}>
-                {getFilteredOccurrencesCount().toString().padStart(2, '0')}
+                {filteredOccurrencesCount.toString().padStart(2, '0')}
               </Text>
               <Text style={styles.statSubtitle}>OCORRÊNCIAS</Text>
             </View>
