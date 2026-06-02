@@ -1,0 +1,5 @@
+# Impede que o Expo EAS faça upload dessas pastas gigantes para a nuvem
+visao-computacional/
+mqtt-alarme/
+cloudflared.exe
+.git/

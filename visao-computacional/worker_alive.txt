@@ -1,0 +1,4 @@
+ALIVE: 2026-06-02 20:09:38
+Threads: 2/3
+Frames: 3615
+Eventos: 8

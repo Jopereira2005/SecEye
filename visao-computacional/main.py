@@ -396,15 +396,10 @@ def main():
 
     if not cameras_iniciais:
         print("\n" + "="*60)
-        print(">> [ERRO] NENHUMA CAMERA ENCONTRADA!")
-        print(">> Verifique:")
-        print(">>   1. Tabela 'cameras' existe no Supabase")
-        print(">>   2. Campo 'is_active' = true")
-        print(">>   3. Campo 'rtsp_url' preenchido")
-        print(">>   4. Credenciais do Supabase estao corretas (service_role key)")
+        print(">> [AVISO] NENHUMA CAMERA ATIVA ENCONTRADA!")
+        print(">> O servidor iniciara em modo de espera.")
+        print(">> Adicione uma camera no App para iniciar o processamento.")
         print("="*60)
-        print(">> Sistema sera encerrado.")
-        sys.exit(1)
 
     iniciar_threads_cameras(cameras_iniciais)
     print("="*60 + "\n")
