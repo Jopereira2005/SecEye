@@ -26,7 +26,7 @@ export const styles = StyleSheet.create({
   logoText: {
     color: CustomColors.light,
     fontSize: moderateScale(30),
-    fontFamily: CustomFonts.daysOne,
+    fontFamily: CustomFonts.inter,
   },
 
   logoHighlight: {
@@ -76,7 +76,7 @@ export const styles = StyleSheet.create({
   dropdownTitle: {
     color: CustomColors.light,
     fontSize: 16,
-    fontFamily: CustomFonts.daysOne,
+    fontFamily: CustomFonts.inter,
   },
 
   markAllReadText: {
@@ -102,7 +102,7 @@ export const styles = StyleSheet.create({
   notificationTitle: {
     color: CustomColors.light,
     fontSize: 14,
-    fontFamily: CustomFonts.daysOne,
+    fontFamily: CustomFonts.inter,
     flex: 1,
   },
 

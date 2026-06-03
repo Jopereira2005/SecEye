@@ -95,10 +95,11 @@ export function Header() {
 
   const formatTime = (isoString: string) => {
     if (!isoString) return '';
-    // Remove decimais de segundos e Z para evitar auto-conversão UTC do JS
-    const safeStr = isoString.split('.')[0].replace('Z', '');
-    const parts = safeStr.split('T');
+    let safeStr = isoString.replace('+00:00', '').replace('Z', '');
+    if (safeStr.includes('.')) safeStr = safeStr.split('.')[0];
     
+    // Parse manual para evitar fallback de UTC do Hermes em strings ISO sem offset
+    const parts = safeStr.split('T');
     if (parts.length < 2) return '';
     
     const [datePart, timePart] = parts;
@@ -106,6 +107,7 @@ export function Header() {
     const [hour, min, sec] = timePart.split(':').map(Number);
     
     const date = new Date(year, month - 1, day, hour, min, sec || 0);
+    if (isNaN(date.getTime())) return '';
     
     const timeStr = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', hour12: false });
     

@@ -5,9 +5,6 @@ import { Video, Clock, ShieldAlert, CheckCircle, AlertTriangle, Check } from 'lu
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { styles } from './occurrence-card.styles';
 import { CustomColors } from '@/constants/theme';
-import { IOcurrence } from '@/interfaces/ocurrence.interface';
-import { ICamera } from '@/interfaces/camera.interface';
-
 const formatTime = (isoString: string) => {
   try {
     let safeStr = isoString.replace('+00:00', '').replace('Z', '');
