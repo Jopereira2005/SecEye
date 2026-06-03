@@ -10,8 +10,8 @@ import { DeviceCard } from '@/components/DeviceCard/device-card';
 import { DeviceModal } from '@/components/DeviceModal/device-modal';
 import { CameraViewerModal } from '@/components/CameraViewer/camera-viewer-modal';
 import { ICamera } from '@/interfaces/camera.interface';
-
 import { useDevices } from '@/hooks/use-devices';
+import { activateAlarm, deactivateAlarm } from '@/services/mqtt.service';
 
 export function DevicesScreen() {
   const [activeTab, setActiveTab] = useState<'cameras' | 'alarms'>('cameras');
@@ -21,6 +21,9 @@ export function DevicesScreen() {
   const [editingCamera, setEditingCamera] = useState<ICamera | null>(null);
   const [isViewerVisible, setIsViewerVisible] = useState(false);
   const [viewingCamera, setViewingCamera] = useState<ICamera | null>(null);
+  
+  // Controle local do alarme de teste MQTT
+  const [isAlarmActive, setIsAlarmActive] = useState(false);
 
   const handleTabPress = (tab: 'cameras' | 'alarms') => {
     setActiveTab(tab);
@@ -53,6 +56,22 @@ export function DevicesScreen() {
   const handleDeleteCamera = async (id: string) => {
     await removeDevice(id);
     setIsModalVisible(false);
+  };
+
+  const handleToggleAlarm = async () => {
+    try {
+      if (isAlarmActive) {
+        await deactivateAlarm();
+        setIsAlarmActive(false);
+        Toast.show({ type: 'success', text1: 'Sirene Desarmada!' });
+      } else {
+        await activateAlarm();
+        setIsAlarmActive(true);
+        Toast.show({ type: 'error', text1: 'Sirene Disparada!' });
+      }
+    } catch (e) {
+      Toast.show({ type: 'error', text1: 'Erro ao comunicar via MQTT' });
+    }
   };
 
   return (
@@ -106,12 +125,18 @@ export function DevicesScreen() {
             </View>
           )
         ) : (
-          <View style={styles.emptyContainer}>
-            <PenTool size={48} color={CustomColors.primary} style={styles.emptyIcon} />
-            <Text style={styles.emptyTitle}>Em Breve</Text>
-            <Text style={styles.emptyText}>
-              A integração e gestão inteligente de alarmes físicos chegará em uma atualização futura.
-            </Text>
+          <View style={{ paddingTop: 8 }}>
+            <DeviceCard 
+              type="alarm"
+              device={{
+                id: 'alarm_test_1',
+                name: 'Sirene de Teste',
+                description: 'Controle manual via MQTT',
+                is_active: isAlarmActive,
+                status: 'online'
+              }}
+              onToggleStatus={handleToggleAlarm}
+            />
           </View>
         )}
       </ScrollView>

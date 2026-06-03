@@ -40,14 +40,8 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     right: 0,
     bottom: 0,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: CustomColors.quartenary,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: CustomColors.dark,
   },
 
   userNameContainer: {

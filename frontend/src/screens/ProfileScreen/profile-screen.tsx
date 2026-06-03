@@ -24,7 +24,6 @@ import { CustomColors } from '@/constants/theme';
 import Toast from 'react-native-toast-message';
 
 export function ProfileScreen() {
-  const router = useRouter();
   const { profile, signOut, refreshProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -50,14 +49,12 @@ export function ProfileScreen() {
 
   const handlePickAvatar = async () => {
     try {
-      // Pedir permissão
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('Permissão negada', 'Precisamos de acesso à galeria para alterar sua foto de perfil.');
         return;
       }
 
-      // Abrir galeria
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         allowsEditing: true,
@@ -169,14 +166,19 @@ export function ProfileScreen() {
               </View>
             )}
 
-            <TouchableOpacity 
-              activeOpacity={0.8} 
-              style={styles.editAvatarButton}
-              onPress={handlePickAvatar}
-              disabled={uploadingAvatar}
-            >
-              <Feather name="edit-2" size={18} color="#fff" />
-            </TouchableOpacity>
+            <View style={styles.editAvatarButton}>
+              <Button 
+                variant="gradient"
+                style={{ paddingHorizontal: 0, paddingVertical: 0 }}
+                onPress={handlePickAvatar}
+                disabled={uploadingAvatar}
+                width={40}
+                height={40}
+                borderRadius={40}
+              >
+                <Feather name="edit-2" size={20} color="#fff" />
+              </Button>
+            </View>
           </View>
 
           <View style={styles.userNameContainer}>
@@ -186,7 +188,7 @@ export function ProfileScreen() {
 
         {/* Form */}
         <View style={styles.formSection}>
-          <View style={styles.inputsContainer}>
+          <View>
 
             <Input
               label="Nome"

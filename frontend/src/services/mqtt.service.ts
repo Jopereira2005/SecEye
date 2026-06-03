@@ -17,8 +17,9 @@ function getClient(): MqttClient | null {
 
   try {
     const clientId = 'seceye-app-' + Math.random().toString(16).slice(2, 10);
+    const brokerUrl = MQTT_BROKER.trim();
 
-    client = mqtt.connect(MQTT_BROKER, {
+    client = mqtt.connect(brokerUrl, {
       clientId,
       username: MQTT_USER,
       password: MQTT_PASS,
@@ -36,7 +37,7 @@ function getClient(): MqttClient | null {
     });
 
     client.on('error', (err) => {
-      console.error('[MQTT] Erro:', err?.message ?? err);
+      console.warn('[MQTT] Erro de conexao:', err?.message ?? err);
     });
 
     client.on('close', () => {
@@ -112,6 +113,60 @@ export function deactivateAlarm(): Promise<void> {
       }
     } catch (error) {
       console.error('[MQTT] deactivateAlarm exception:', error);
+      reject(error as Error);
+    }
+  });
+}
+
+export function activateAlarm(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    try {
+      const c = getClient();
+
+      if (!c) {
+        const err = new Error('[MQTT] Cliente nao inicializado');
+        console.error(err.message);
+        reject(err);
+        return;
+      }
+
+      if (!MQTT_TOPIC) {
+        const err = new Error('[MQTT] EXPO_PUBLIC_MQTT_TOPIC nao definido');
+        console.error(err.message);
+        reject(err);
+        return;
+      }
+
+      const doPublish = () => {
+        c.publish(MQTT_TOPIC, '1', { qos: 1 }, (err) => {
+          if (err) {
+            console.error('[MQTT] Falha ao publicar "1":', err.message);
+            reject(err);
+          } else {
+            console.log('[MQTT] Publicado "1" em', MQTT_TOPIC);
+            resolve();
+          }
+        });
+      };
+
+      if (c.connected) {
+        doPublish();
+      } else {
+        const timeout = setTimeout(() => {
+          c.off('connect', onConnect);
+          reject(new Error('[MQTT] Timeout aguardando conexao'));
+        }, 10000);
+
+        const onConnect = () => {
+          clearTimeout(timeout);
+          c.off('connect', onConnect);
+          doPublish();
+        };
+
+        c.on('connect', onConnect);
+      }
+    } catch (error) {
+      console.error('[MQTT] activateAlarm exception:', error);
       reject(error as Error);
     }
   });
