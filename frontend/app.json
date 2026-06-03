@@ -22,7 +22,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.luizamantovani.frontend"
+      "package": "com.luizamantovani.frontend",
+      "usesCleartextTraffic": true
     },
     "web": {
       "output": "static",

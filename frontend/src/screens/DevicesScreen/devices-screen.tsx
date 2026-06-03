@@ -11,7 +11,7 @@ import { DeviceModal } from '@/components/DeviceModal/device-modal';
 import { CameraViewerModal } from '@/components/CameraViewer/camera-viewer-modal';
 import { ICamera } from '@/interfaces/camera.interface';
 import { useDevices } from '@/hooks/use-devices';
-import { activateAlarm, deactivateAlarm } from '@/services/mqtt.service';
+import { activateAlarmMqtt, deactivateAlarmMqtt } from '@/services/mqtt.service';
 
 export function DevicesScreen() {
   const [activeTab, setActiveTab] = useState<'cameras' | 'alarms'>('cameras');
@@ -61,11 +61,11 @@ export function DevicesScreen() {
   const handleToggleAlarm = async () => {
     try {
       if (isAlarmActive) {
-        await deactivateAlarm();
+        await deactivateAlarmMqtt();
         setIsAlarmActive(false);
         Toast.show({ type: 'success', text1: 'Sirene Desarmada!' });
       } else {
-        await activateAlarm();
+        await activateAlarmMqtt();
         setIsAlarmActive(true);
         Toast.show({ type: 'error', text1: 'Sirene Disparada!' });
       }

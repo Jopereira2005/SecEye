@@ -64,7 +64,7 @@ export function connectMqtt(): void {
   }
 }
 
-export function deactivateAlarm(): Promise<void> {
+export function deactivateAlarmMqtt(): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
       const c = getClient();
@@ -118,7 +118,7 @@ export function deactivateAlarm(): Promise<void> {
   });
 }
 
-export function activateAlarm(): Promise<void> {
+export function activateAlarmMqtt(): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
       const c = getClient();

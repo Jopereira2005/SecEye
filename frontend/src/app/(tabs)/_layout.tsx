@@ -1,9 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Tabs } from 'expo-router';
 import { Header } from '@/components/Header/header';
 import { Navbar } from '@/components/Navbar/navbar';
+import { connectMqtt, disconnectMqtt } from '@/services';
 
 export default function TabLayout() {
+  useEffect(() => {
+    connectMqtt();
+    return () => {
+      disconnectMqtt();
+    };
+  }, []);
+
   return (
     <Tabs 
       tabBar={(props) => <Navbar {...props} />}
