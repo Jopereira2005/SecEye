@@ -2,6 +2,8 @@ import mqtt, { MqttClient } from 'mqtt';
 
 const MQTT_BROKER = process.env.EXPO_PUBLIC_MQTT_BROKER;
 const MQTT_TOPIC = process.env.EXPO_PUBLIC_MQTT_TOPIC;
+const MQTT_USER = process.env.EXPO_PUBLIC_MQTT_USER;
+const MQTT_PASS = process.env.EXPO_PUBLIC_MQTT_PASS;
 
 let client: MqttClient | null = null;
 
@@ -18,6 +20,8 @@ function getClient(): MqttClient | null {
 
     client = mqtt.connect(MQTT_BROKER, {
       clientId,
+      username: MQTT_USER,
+      password: MQTT_PASS,
       reconnectPeriod: 3000,
       connectTimeout: 10000,
       clean: true,
@@ -93,10 +97,17 @@ export function deactivateAlarm(): Promise<void> {
       if (c.connected) {
         doPublish();
       } else {
+        const timeout = setTimeout(() => {
+          c.off('connect', onConnect);
+          reject(new Error('[MQTT] Timeout aguardando conexao'));
+        }, 10000);
+
         const onConnect = () => {
+          clearTimeout(timeout);
           c.off('connect', onConnect);
           doPublish();
         };
+
         c.on('connect', onConnect);
       }
     } catch (error) {
