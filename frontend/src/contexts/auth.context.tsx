@@ -103,7 +103,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithEmail = useCallback(
     async (email: string, password: string) => {
-      setIsLoading(true);
       try {
         const result = await signIn(email, password);
         if (!result.error) {
@@ -114,8 +113,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setError(result.error);
         }
         return result;
-      } finally {
-        setIsLoading(false);
+      } catch (e) {
+        setError(e as Error);
+        return { data: null, error: e as Error };
       }
     },
     []
@@ -129,7 +129,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       firstName = '',
       lastName = ''
     ) => {
-      setIsLoading(true);
       try {
         const result = await signUp(email, password, username, firstName, lastName);
         if (!result.error) {
@@ -140,8 +139,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setError(result.error);
         }
         return result;
-      } finally {
-        setIsLoading(false);
+      } catch (e) {
+        setError(e as Error);
+        return { data: null, error: e as Error };
       }
     },
     []

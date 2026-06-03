@@ -10,10 +10,28 @@ import { AuthProvider } from '@/contexts/auth.context';
 import { RouteGuard } from '@/components/RouteGuard/route-guard';
 import Toast from 'react-native-toast-message';
 import { toastConfig } from '@/components/Toast/toast-config';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
+import { supabase } from '@/services/supabase';
+
+// Interceptador Global para capturar erros de conta deletada ou token inválido em qualquer lugar do app
+const handleGlobalAuthError = async (error: any) => {
+  const errCode = error?.code || '';
+  const errMsg = error?.message || '';
+  
+  // 23503 = Foreign Key Violation (Usuário deletado)
+  if (errCode === '23503' || errMsg.includes('User not found') || errMsg.includes('JWT') || errMsg.includes('Auth session missing')) {
+    await supabase.auth.signOut();
+  }
+};
 
 // Instância global do React Query
 const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: handleGlobalAuthError,
+  }),
+  mutationCache: new MutationCache({
+    onError: handleGlobalAuthError,
+  }),
   defaultOptions: {
     queries: {
       retry: 2,

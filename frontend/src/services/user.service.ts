@@ -35,6 +35,11 @@ export async function getProfile(): Promise<Result<IUser>> {
       .single<IUser>();
 
     if (error) {
+      if (error.code === 'PGRST116') {
+        // Usuário não tem perfil na tabela (foi deletado)
+        await supabase.auth.signOut();
+        return { data: null, error: new Error('Sua conta foi excluída ou não existe mais.') };
+      }
       console.error('getProfile query error:', error);
       return { data: null, error };
     }
@@ -69,6 +74,12 @@ export async function updateProfile(payload: UpdateProfilePayload): Promise<Resu
       .single<IUser>();
 
     if (error) {
+      if (error.code === 'PGRST116' || error.code === '23503') {
+        // Usuário não tem perfil na tabela (foi deletado)
+        await supabase.auth.signOut();
+        return { data: null, error: new Error('Sua conta foi excluída ou não existe mais.') };
+      }
+
       // username único: código 23505 = unique_violation
       if (error.code === '23505') {
         const friendlyError = new Error('Este nome de usuário já está em uso.');

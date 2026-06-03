@@ -24,6 +24,7 @@ import { styles } from "./_auth.styles";
 import { CustomColors } from "@/constants/theme";
 import { useAuth } from "@/contexts/auth.context";
 import Toast from 'react-native-toast-message';
+import { supabase } from "@/services/supabase";
 
 // LayoutAnimation is natively supported in the New Architecture, no experimental flag needed.
 
@@ -80,6 +81,19 @@ export default function AuthScreen() {
 
     setLoading(true);
     try {
+      // 1. Verificar se o username já existe no banco antes de tentar criar
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('username')
+        .eq('username', signupUsername.trim())
+        .maybeSingle();
+
+      if (existingUser) {
+        Toast.show({ type: 'error', text1: 'Erro no Cadastro', text2: 'Este nome de usuário já está em uso.' });
+        return;
+      }
+
+      // 2. Fazer o cadastro oficial no Supabase
       const { data, error } = await signUp(
         signupEmail.trim(),
         signupPassword,
@@ -87,7 +101,16 @@ export default function AuthScreen() {
       );
 
       if (error) {
-        Toast.show({ type: 'error', text1: 'Erro no Cadastro', text2: error.message || 'Falha ao cadastrar.' });
+        let errorMsg = error.message;
+        if (errorMsg.includes('User already registered')) {
+          errorMsg = 'Este e-mail já está cadastrado.';
+        } else if (errorMsg.includes('Password should be at least 6 characters')) {
+          errorMsg = 'A senha deve ter no mínimo 6 caracteres.';
+        } else if (errorMsg.includes('Invalid login credentials')) {
+          errorMsg = 'Credenciais inválidas.';
+        }
+        
+        Toast.show({ type: 'error', text1: 'Erro no Cadastro', text2: errorMsg || 'Falha ao cadastrar.' });
         return;
       }
 

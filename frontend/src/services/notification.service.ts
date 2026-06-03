@@ -12,15 +12,11 @@ export async function getNotifications(userId: string): Promise<Result<INotifica
       .order('created_at', { ascending: false })
       .limit(50);
 
-    if (error) {
-      console.error('getNotifications query error:', error);
-      return { data: null, error: new Error(error.message) };
-    }
-
+    if (error) throw error;
     return { data, error: null };
   } catch (error) {
     console.error('getNotifications exception:', error);
-    return { data: null, error: error as Error };
+    throw error;
   }
 }
 
@@ -31,15 +27,11 @@ export async function markAsRead(notificationId: string): Promise<Result<boolean
       .update({ is_read: true })
       .eq('id', notificationId);
 
-    if (error) {
-      console.error('markAsRead query error:', error);
-      return { data: null, error: new Error(error.message) };
-    }
-
+    if (error) throw error;
     return { data: true, error: null };
   } catch (error) {
     console.error('markAsRead exception:', error);
-    return { data: null, error: error as Error };
+    throw error;
   }
 }
 
@@ -51,15 +43,11 @@ export async function markAllAsRead(userId: string): Promise<Result<boolean>> {
       .eq('user_id', userId)
       .eq('is_read', false);
 
-    if (error) {
-      console.error('markAllAsRead query error:', error);
-      return { data: null, error: new Error(error.message) };
-    }
-
+    if (error) throw error;
     return { data: true, error: null };
   } catch (error) {
     console.error('markAllAsRead exception:', error);
-    return { data: null, error: error as Error };
+    throw error;
   }
 }
 
@@ -81,14 +69,10 @@ export async function createNotification(
         }
       ]);
 
-    if (error) {
-      console.error('createNotification query error:', error);
-      return { data: null, error: new Error(error.message) };
-    }
-
+    if (error) throw error;
     return { data: true, error: null };
   } catch (error) {
     console.error('createNotification exception:', error);
-    return { data: null, error: error as Error };
+    throw error;
   }
 }

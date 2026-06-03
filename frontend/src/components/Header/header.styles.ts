@@ -26,7 +26,7 @@ export const styles = StyleSheet.create({
   logoText: {
     color: CustomColors.light,
     fontSize: moderateScale(30),
-    fontFamily: CustomFonts.inter,
+    fontFamily: CustomFonts.daysOne,
   },
 
   logoHighlight: {

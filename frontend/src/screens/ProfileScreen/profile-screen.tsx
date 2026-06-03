@@ -182,7 +182,7 @@ export function ProfileScreen() {
           </View>
 
           <View style={styles.userNameContainer}>
-            <Text style={styles.userName}>{username || 'Usuário'}</Text>
+            <Text style={styles.userName}>{profile?.username || 'Usuário'}</Text>
           </View>
         </View>
 
@@ -205,7 +205,7 @@ export function ProfileScreen() {
             />
 
             <Input
-              label="Usuário"
+              label="Nome de Usuário"
               value={username}
               onChangeText={setUsername}
               autoCapitalize="none"

@@ -22,10 +22,17 @@ export async function signUp(
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          username,
+          first_name: firstName || username,
+          last_name: lastName || '',
+        }
+      }
     });
 
     if (authError) {
-      console.error('signUp auth error:', authError);
+      console.warn('signUp auth error:', authError.message);
       return { data: null, error: authError };
     }
 
@@ -36,16 +43,22 @@ export async function signUp(
       };
     }
 
+    // Se não houver sessão, significa que a confirmação de e-mail está ativada.
+    // O banco de dados (via RLS) bloqueará a inserção manual pelo frontend.
+    // Neste caso, retornamos sem tentar o insert (um Database Trigger deve criar o perfil).
+    if (!authData.session) {
+      return {
+        data: { user: authData.user, session: null, profile: null },
+        error: null,
+      };
+    }
+
+    // Como você criou o Gatilho (Trigger) no banco de dados, o perfil já foi inserido automaticamente!
+    // Portanto, não tentamos mais dar um "insert", apenas consultamos (select) o perfil recém-criado.
     const { data: profile, error: profileError } = await supabase
       .from('users')
-      .insert({
-        id: authData.user.id,
-        email,
-        username,
-        first_name: firstName || username,
-        last_name: lastName || '',
-      })
       .select()
+      .eq('id', authData.user.id)
       .single<IUser>();
 
     if (profileError) {
@@ -121,7 +134,11 @@ export async function getCurrentUser(): Promise<Result<AuthUser | null>> {
     const { data, error } = await supabase.auth.getUser();
 
     if (error) {
-      console.error('getCurrentUser error:', error);
+      if (error.message?.includes('Refresh Token')) {
+        console.warn('getCurrentUser warning: Sessão expirada.');
+      } else {
+        console.error('getCurrentUser error:', error);
+      }
       return { data: null, error };
     }
 
@@ -137,7 +154,11 @@ export async function getSession(): Promise<Result<Session | null>> {
     const { data, error } = await supabase.auth.getSession();
 
     if (error) {
-      console.error('getSession error:', error);
+      if (error.message?.includes('Refresh Token')) {
+        console.warn('getSession warning: Sessão expirada ou token inválido.');
+      } else {
+        console.error('getSession error:', error);
+      }
       return { data: null, error };
     }
 
@@ -170,6 +191,11 @@ export async function getCurrentProfile(): Promise<Result<IUser | null>> {
       .single<IUser>();
 
     if (error) {
+      if (error.code === 'PGRST116') {
+        // Usuário não tem perfil na tabela (foi deletado)
+        await supabase.auth.signOut();
+        return { data: null, error: new Error('Sua conta foi excluída ou não existe mais.') };
+      }
       console.error('getCurrentProfile query error:', error);
       return { data: null, error };
     }

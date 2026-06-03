@@ -50,7 +50,14 @@ export async function createRoutine(payload: CreateRoutinePayload): Promise<IRou
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      if (error.code === '23503') {
+        // Se a constraint de foreign key falhar, significa que o ID do usuário não existe mais na tabela (foi deletado)
+        await supabase.auth.signOut(); // Isso força o logout no app inteiro
+        throw new Error('Sua conta foi excluída ou não existe mais. Faça login novamente.');
+      }
+      throw error;
+    }
     return data as IRoutine;
   } catch (err) {
     console.error('createRoutine:', err);
@@ -137,7 +144,13 @@ export async function updateRoutine(id: number, payload: Partial<IRoutine>): Pro
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      if (error.code === '23503') {
+        await supabase.auth.signOut();
+        throw new Error('Sua conta foi excluída ou não existe mais. Faça login novamente.');
+      }
+      throw error;
+    }
     return data as IRoutine;
   } catch (err) {
     console.error('updateRoutine:', err);

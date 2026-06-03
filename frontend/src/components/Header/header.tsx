@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/auth.context';
 import { INotification } from '@/interfaces/notification.interface';
 import { getNotifications, markAsRead, markAllAsRead } from '@/services/notification.service';
 import { supabase } from '@/services/supabase';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
 export function Header() {
   const insets = useSafeAreaInsets();
@@ -70,7 +71,29 @@ export function Header() {
     if (data) setNotifications(data);
   };
 
+  // Valores de animação manuais para garantir funcionamento dentro do Modal nativo
+  const translateX = useSharedValue(30);
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    if (!showDropdown) {
+      // Quando fechar, garante que os valores voltam para o estado inicial
+      translateX.value = 30;
+      opacity.value = 0;
+    }
+  }, [showDropdown]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateX: translateX.value }]
+  }));
+
   const handleToggleDropdown = () => {
+    if (!showDropdown) {
+      // Prepara os valores instantaneamente ANTES do Modal renderizar (evita a piscada)
+      translateX.value = 30; // Começa 30px para a direita
+      opacity.value = 0;
+    }
     setShowDropdown(!showDropdown);
   };
 
@@ -145,11 +168,26 @@ export function Header() {
       </View>
 
       {/* Dropdown Overlay Modal (permite clicar fora para fechar) */}
-      <Modal visible={showDropdown} transparent animationType="fade">
+      <Modal 
+        visible={showDropdown} 
+        transparent 
+        animationType="none"
+        statusBarTranslucent
+        navigationBarTranslucent
+        hardwareAccelerated
+        onShow={() => {
+          // O onShow garante que a janela nativa terminou de travar a tela
+          // e agora podemos rodar a animação fluidamente a partir do 0!
+          translateX.value = withTiming(0, { duration: 300 });
+          opacity.value = withTiming(1, { duration: 300 });
+        }}
+      >
         <TouchableWithoutFeedback onPress={() => setShowDropdown(false)}>
           <View style={{ flex: 1 }}>
             <TouchableWithoutFeedback>
-              <View style={[styles.dropdownContainer, { top: Math.max(insets.top, 16) + 50 }]}>
+              <Animated.View 
+                style={[styles.dropdownContainer, { top: Math.max(insets.top, 16) + 50 }, animatedStyle]}
+              >
                 <View style={styles.dropdownHeader}>
                   <Text style={styles.dropdownTitle}>Notificações</Text>
                   {hasUnread && (
@@ -184,7 +222,7 @@ export function Header() {
                     ))
                   )}
                 </ScrollView>
-              </View>
+              </Animated.View>
             </TouchableWithoutFeedback>
           </View>
         </TouchableWithoutFeedback>
